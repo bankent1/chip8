@@ -1,0 +1,15 @@
+< CHIP 8 Emulator >
+
+Task                Impl  Test
+---------------------------------
+< Hardware >
+Memory              [ ]   [ ] 
+Registers           [ ]   [ ] 
+
+< Cycle >
+Instr Fetch         [ ]   [ ] 
+Decode              [ ]   [ ] 
+Execute             [ ]   [ ] 
+
+< Extra >
+Display???
