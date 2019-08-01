@@ -39,12 +39,78 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr)
 	instr->vy     = (raw_instr >>  4) & 0xf;
 	instr->funct  = (raw_instr >>  0) & 0xf;
 
-	instr->imm8   = (raw_instr >>  0) & 0xff;
+	instr->kk     = (raw_instr >>  0) & 0xff;
 
-	instr->addr   = (raw_instr >>  0) & 0xfff;
+	instr->nnn    = (raw_instr >>  0) & 0xfff;
 }
 
-void fill_ctrl_bits(struct instruction *instr, struct crtl_bits *crtl)
+void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 {
-	// TODO: Implement me!
+	// zero out struct
+	ctrl->vfwrite_enable = 0;
+	ctrl->reg_src = 0;
+	ctrl->write_reg = 0;
+	ctrl->i_src = 0;
+	ctrl->mem_src = 0;
+	ctrl->fb_write = 0;
+	ctrl->mem_write = 0;
+	ctrl->sp_src = 0;
+	ctrl->sp_write = 0;
+	ctrl->pc_src = 0;
+	ctrl->alu_src = 0;
+	ctrl->delay_hold = 0;
+	ctrl->sound_hold = 0;
+	ctrl->xpointer = 0;
+	ctrl->alu_op = 0;
+
+	switch (instr->opcode) {
+	case 0x0:
+		// TODO
+		break;
+	case 0x1:
+		// TODO
+		break;
+	case 0x2:
+		// TODO
+		break;
+	case 0x3:
+		// TODO
+		break;
+	case 0x4:
+		// TODO
+		break;
+	case 0x5:
+		// TODO
+		break;
+	case 0x6:
+		// TODO
+		break;
+	case 0x7:
+		// TODO
+		break;
+	case 0x8:
+		// TODO
+		break;
+	case 0x9:
+		// TODO
+		break;
+	case 0xA:
+		// TODO
+		break;
+	case 0xB:
+		// TODO
+		break;
+	case 0xC:
+		// TODO
+		break;
+	case 0xD:
+		// TODO
+		break;
+	case 0xE:
+		// TODO
+		break;
+	case 0xF:
+		// TODO
+		break;
+	}
 }
