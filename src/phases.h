@@ -44,6 +44,7 @@ struct ctrl_bits {
 	// 2 - mem
 	// 3 - kk (imm)
 	// 4 - key press
+	// 5 - alu_res
 	uint8_t reg_src;
 
 	uint8_t fb_row;
@@ -70,8 +71,8 @@ struct ctrl_bits {
 
 	// 0 - stack
 	// 1 - ALU
-	// 2 - PC + 2
-	// 3 - PC + 1
+	// 2 - PC + 4
+	// 3 - PC + 2
 	// 4 - PC
 	// 4 - NNN
 	uint8_t pc_src;
@@ -88,7 +89,7 @@ struct ctrl_bits {
 
 	// 0 - VY
 	// 1 - kk
-	// 2 - literal 5
+	// 2 - literal 0
 	uint8_t alu_src;
 
 	// 0 - AND

@@ -66,6 +66,14 @@ void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	switch (instr->opcode) {
 	case 0x0:
 		// TODO
+		switch (instr->kk) {
+		case 0xE0:
+			// TODO
+			break;
+		case 0xEE:
+			// TODO:
+			break;
+		}
 		break;
 	case 0x1:
 		// TODO
@@ -88,8 +96,33 @@ void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	case 0x7:
 		// TODO
 		break;
-	case 0x8:
-		// TODO
+	case 0x8: // vxvy format
+		ctrl->pc_src = 3;
+		ctrl->alu_res = 5;
+
+		switch (instr->funct) {
+		case 0x0: // AND
+			ctrl->alu_op = 0;
+			break;
+		case 0x1: // OR
+			ctrl->alu_op = 1;
+			break;
+		case 0x2: // ADD
+			ctrl->alu_op = 2;
+			break;
+		case 0x3: // SUB
+			ctrl->alu_op = 3;
+			break;
+		case 0x4: // XOR
+			ctrl->alu_op = 4;
+			break;
+		case 0x5: // SHIFT R
+			ctrl->alu_op = 5;
+			break;
+		case 0x6: // SHIFT L
+			ctrl->alu_op = 6;
+			break;
+		}
 		break;
 	case 0x9:
 		// TODO
