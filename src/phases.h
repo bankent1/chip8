@@ -46,9 +46,9 @@ struct ctrl_bits {
 	// 4 - key press
 	// 5 - alu_res
 	uint8_t reg_src;
+	uint8_t write_reg;
 
 	uint8_t fb_row;
-	uint8_t write_reg;
 
 	// 0 - I
 	// 1 - ALU/NNN
@@ -58,9 +58,10 @@ struct ctrl_bits {
 	// 0 - Binary Coded Value
 	// 1 - VX
 	uint8_t mem_src;
-
-	uint8_t fb_write;
 	uint8_t mem_write;
+
+	// frame buf write
+	uint8_t fb_write;
 
 	// 0 - sp
 	// 1 - sp + 1
@@ -69,12 +70,12 @@ struct ctrl_bits {
 
 	uint8_t sp_write;
 
-	// 0 - stack
-	// 1 - ALU
+	// 0 - PC + 2
+	// 1 - PC
 	// 2 - PC + 4
-	// 3 - PC + 2
-	// 4 - PC
-	// 4 - NNN
+	// 3 - NNN
+	// 4 - v0 + nnn
+	// 5 - stack
 	uint8_t pc_src;
 
 	// 0 - ST-1
@@ -85,6 +86,7 @@ struct ctrl_bits {
 	// 1 - VX
 	uint8_t sound_hold;
 
+	// ???
 	uint8_t xpointer;
 
 	// 0 - VY
@@ -100,6 +102,8 @@ struct ctrl_bits {
 	// 5 - shift right
 	// 6 - shift left
 	uint8_t alu_op;
+
+	uint8_t not_alu_res;
 };
 
 /*

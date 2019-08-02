@@ -21,7 +21,7 @@
 int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
 {
 	if (addr >= size || addr + 1 >= size) {
-		fprintf(stderr, "fetch_instr(): addr [0x%x] too large\n", addr);
+		fprintf(stderr, "Error [fetch_instr]: addr [0x%x] too large\n", addr);
 		return 1;
 	}
 
@@ -44,7 +44,7 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr)
 	instr->nnn    = (raw_instr >>  0) & 0xfff;
 }
 
-void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
+int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 {
 	// zero out struct
 	ctrl->vfwrite_enable = 0;
@@ -62,43 +62,60 @@ void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	ctrl->sound_hold = 0;
 	ctrl->xpointer = 0;
 	ctrl->alu_op = 0;
+	ctlr->not_alu_res = 0;
 
 	switch (instr->opcode) {
 	case 0x0:
 		// TODO
 		switch (instr->kk) {
-		case 0xE0:
+		case 0xE0: // clear screen
 			// TODO
 			break;
-		case 0xEE:
+		case 0xEE: // RET from subroutine
 			// TODO:
 			break;
+		default:
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			return 1;
 		}
 		break;
-	case 0x1:
+	case 0x1: // jump to nnn
+		ctrl->pc_src = 3;
+		break;
+	case 0x2: // call subroutine at nnn
 		// TODO
 		break;
-	case 0x2:
-		// TODO
+	case 0x3: // skp nxt instr if vx == kk
+		ctrl->pc_src = 2; // TODO: requre pc to check if eq
+		ctrl->not_alu_res = 1;
+		ctrl->alu_op = 4;
+		ctrl->alu_src = 1;
 		break;
-	case 0x3:
-		// TODO
+	case 0x4: // skp nxt isntr if vx != kk
+		ctrl->pc_src = 2; // TODO: require pc to check if eq
+		ctrl->alu_op = 4;
+		ctrl->alu_src = 1;
 		break;
-	case 0x4:
-		// TODO
+	case 0x5: // skp nxt instr if vx == vy
+		ctrl->pc_src = 2; // TODO: requre pc to check if eq
+		ctrl->not_alu_res = 1;
+		ctrl->alu_op = 4;
+		ctrl->alu_src = 0;
 		break;
-	case 0x5:
-		// TODO
+	case 0x6: // set vx = kk
+		ctrl->write_reg = 1;
+		ctrl->reg_src = 3;
 		break;
-	case 0x6:
-		// TODO
-		break;
-	case 0x7:
-		// TODO
+	case 0x7: // vx += kk
+		ctrl->write_reg = 1;
+		ctrl->reg_src = 5;
+		ctrl->alu_src = 1;
+		ctrl->alu_op = 2;
 		break;
 	case 0x8: // vxvy format
-		ctrl->pc_src = 3;
-		ctrl->alu_res = 5;
+		ctrl->reg_src = 5;
+		ctrl->write_reg = 1;
+		ctrl->alu_src = 0;
 
 		switch (instr->funct) {
 		case 0x0: // AND
@@ -122,22 +139,28 @@ void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 		case 0x6: // SHIFT L
 			ctrl->alu_op = 6;
 			break;
+		default:
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			return 1;
 		}
 		break;
-	case 0x9:
-		// TODO
+	case 0x9: // skp nxt instr if vx != vy
+		ctrl->pc_src = 2; // TODO: require pc to check if eq
+		ctrl->alu_op = 4;
+		ctrl->alu_src = 0;
 		break;
-	case 0xA:
-		// TODO
+	case 0xA: // set I to nnn
+		ctrl->i_src = 1;
 		break;
-	case 0xB:
-		// TODO
+	case 0xB: // jump to nnn + v0
+		ctrl->pc_src = 4; // TODO: do nnn + v0
 		break;
 	case 0xC:
-		// TODO
+		ctrl->write_reg = 1;
+		ctrl->reg_src = 1; // TODO: rand && nnn
 		break;
-	case 0xD:
-		// TODO
+	case 0xD: // draw at coor (vx, vy) with width 8px and height N px
+		// TODO: see for more info
 		break;
 	case 0xE:
 		// TODO
@@ -145,5 +168,8 @@ void fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	case 0xF:
 		// TODO
 		break;
+	default:
+		fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+		return 1;
 	}
 }
