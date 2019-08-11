@@ -62,7 +62,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	ctrl->sound_hold = 0;
 	ctrl->xpointer = 0;
 	ctrl->alu_op = 0;
-	ctlr->not_alu_res = 0;
+	ctrl->not_alu_res = 0;
 
 	switch (instr->opcode) {
 	case 0x0:
@@ -160,13 +160,60 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 		ctrl->reg_src = 1; // TODO: rand && nnn
 		break;
 	case 0xD: // draw at coor (vx, vy) with width 8px and height N px
-		// TODO: see for more info
+		// TODO: May need revisions
+		ctrl->fb_write = 1;
+		ctrl->fb_row = 1; // ????
 		break;
-	case 0xE:
+	case 0xE: // KeyOp
 		// TODO
+		switch(instr->kk) {
+		case 0x9E: // skp instr if key in vx is pressed
+			ctrl->pc_src = 2;
+			// TODO: other bits ???
+			break;
+		case 0xA1: // skp instr if key in vx is not pressed
+			ctrl->pc_src = 2;
+			// TODO: other bits ???
+			break;
+		default:
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			return 1;
+		}
 		break;
 	case 0xF:
 		// TODO
+		switch(instr->kk) {
+		case 0x07:
+			// TODO
+			break;
+		case 0x0A:
+			// TODO
+			break;
+		case 0x15:
+			// TODO
+			break;
+		case 0x18:
+			// TODO
+			break;
+		case 0x1E:
+			// TODO
+			break;
+		case 0x29:
+			// TODO
+			break;
+		case 0x33:
+			// TODO
+			break;
+		case 0x55:
+			// TODO
+			break;
+		case 0x65:
+			// TODO
+			break;
+		default:
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			return 1;
+		}
 		break;
 	default:
 		fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");

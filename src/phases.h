@@ -48,8 +48,6 @@ struct ctrl_bits {
 	uint8_t reg_src;
 	uint8_t write_reg;
 
-	uint8_t fb_row;
-
 	// 0 - I
 	// 1 - ALU/NNN
 	// 2 - I + 1
@@ -62,6 +60,9 @@ struct ctrl_bits {
 
 	// frame buf write
 	uint8_t fb_write;
+
+	// ???
+	uint8_t fb_row;
 
 	// 0 - sp
 	// 1 - sp + 1
@@ -111,7 +112,7 @@ struct ctrl_bits {
  *
  * Returns 1 on bad address call.
  */
-uint8_t fetch_instr(uint8_t *mem, size_t size, uint16_t addr);
+int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr);
 
 /*
  * Decodes the given instruction and fills the given instr struct.
