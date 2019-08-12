@@ -1,3 +1,5 @@
 #!/bin/bash
 
-rm -rf target
+make clean
+
+rm -rf obj

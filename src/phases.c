@@ -227,5 +227,11 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 		fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
 		return 1;
 	}
+	return 0;
 }
 
+int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
+				uint8_t *carryout, struct ctrl_bits *ctrl)
+{
+	return 0;
+}

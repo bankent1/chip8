@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "phases.h"
+
 #define FOUR_KB 4096
 #define MEM_SIZE FOUR_KB
 #define NUM_REGS 16
