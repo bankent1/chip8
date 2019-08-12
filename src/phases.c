@@ -44,6 +44,8 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr)
 	instr->nnn    = (raw_instr >>  0) & 0xfff;
 }
 
+
+// fills initial control bits
 int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 {
 	// zero out struct
@@ -183,31 +185,37 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	case 0xF:
 		// TODO
 		switch(instr->kk) {
-		case 0x07:
+		case 0x07: // store current delay timer in vx
+			ctrl->write_reg = 1;
+			ctrl->reg_src = 0;
+			break;
+		case 0x0A: // wait for key press and store in vx
+			ctrl->write_reg = 1;
+			ctrl->reg_src = 4;
+			break;
+		case 0x15: // set value of delay to vx
+			// TODO
+			ctrl->delay_hold = 1;
+			break;
+		case 0x18: // set value of sound timer to vx
+			ctrl->sound_hold = 1;
+			break;
+		case 0x1E: // add the value of vx to I
+			ctrl->i_src = 1;
+			break;
+		case 0x29: // Sets I to the location of the sprite for the character 
+				   // in VX. Characters 0-F (in hexadecimal) are represented 
+				   // by a 4x5 font.
 			// TODO
 			break;
-		case 0x0A:
+		case 0x33: // store decimal rep vx, storing most-sigfig at I, mid-sigfig
+				   // at I + 1, least-sigfig at I + 2
 			// TODO
 			break;
-		case 0x15:
+		case 0x55: // store v0 to vx in mem starting at addr I
 			// TODO
 			break;
-		case 0x18:
-			// TODO
-			break;
-		case 0x1E:
-			// TODO
-			break;
-		case 0x29:
-			// TODO
-			break;
-		case 0x33:
-			// TODO
-			break;
-		case 0x55:
-			// TODO
-			break;
-		case 0x65:
+		case 0x65: // fill v0 to vx from mem starting at addr I
 			// TODO
 			break;
 		default:
@@ -220,3 +228,4 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 		return 1;
 	}
 }
+

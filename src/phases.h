@@ -37,6 +37,7 @@ struct ctrl_bits {
 	/* uint8_t xpointer; */
 	/* uint8_t alu_op; */
 
+
 	uint8_t vfwrite_enable;
 
 	// 0 - DT (delay timer)
@@ -49,7 +50,7 @@ struct ctrl_bits {
 	uint8_t write_reg;
 
 	// 0 - I
-	// 1 - ALU/NNN
+	// 1 - I + ALU/NNN
 	// 2 - I + 1
 	uint8_t i_src;
 
@@ -119,5 +120,14 @@ int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr);
  * Memory for the instruction struct is expected to be alloc before calling.
  */
 void decode_instr(uint16_t raw_instr, struct instruction *instr);
+
+/*
+ * Fills the initial control bits from the given instr struct. The resulting
+ * ctrl bits are stored in the given ctrl_bits structs
+ * 
+ * Returns 1 on invalid instruction
+ */
+int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl);
+
 
 #endif
