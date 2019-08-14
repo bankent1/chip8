@@ -20,24 +20,6 @@ struct instruction {
 
 // structure for holding the control bits of the emulator
 struct ctrl_bits {
-	/* uint8_t vfwrite_enable; */
-	/* uint8_t reg_src; */
-	/* uint8_t fb_row; */
-	/* uint8_t write_reg; */
-	/* uint8_t i_src; */
-	/* uint8_t mem_src; */
-	/* uint8_t fb_write; */
-	/* uint8_t mem_write; */
-	/* uint8_t sp_src; */
-	/* uint8_t sp_write; */
-	/* uint8_t pc_src; */
-	/* uint8_t alu_src; */
-	/* uint8_t delay_hold; */
-	/* uint8_t sound_hold; */
-	/* uint8_t xpointer; */
-	/* uint8_t alu_op; */
-
-
 	uint8_t vfwrite_enable;
 
 	// 0 - DT (delay timer)
@@ -93,7 +75,7 @@ struct ctrl_bits {
 
 	// 0 - VY
 	// 1 - kk
-	// 2 - literal 0
+	// 2 - literal 0 // not used?
 	uint8_t alu_src;
 
 	// 0 - AND
@@ -129,5 +111,31 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr);
  */
 int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl);
 
+/*
+ * Sets the value of *alu_in1 to the alu input based on the instr given.
+ * 
+ * Return 1 if error occured, 0 on success.
+ */
+int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
+               uint16_t *alu_in1);
+
+
+/*
+ * Sets the value of *alu_in2 to the alu input based on the ctrl bits and instr
+ * 
+ * Return 1 on error, 0 on success.
+ */
+int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
+                    uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2);
+
+/*
+ * Executes the alu based on the alu op and inputs given. The result will be 
+ * stored in *alu_res param and the carry out of the execution will be stored in
+ * *carryout param.
+ * 
+ * Returns 1 if error occured while executing, 0 otherwise.
+ */
+int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
+             uint8_t *carryout, struct ctrl_bits *ctrl);
 
 #endif

@@ -3,7 +3,7 @@
  *
  * Author: Travis Banken
  *
- * Holds the code for the different phases and helper funtions for fetching, 
+ * Holds the code for the different phases and helper functions for fetching, 
  * decoding, and executing instructions.
  */
 
@@ -230,8 +230,76 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 	return 0;
 }
 
-int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
-				uint8_t *carryout, struct ctrl_bits *ctrl)
+int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
+               uint16_t *alu_in1)
 {
+	// check for out of bounds error
+	if (instr->vx >= regfile_len) {
+		fprintf(stderr, "Error [get_aluin1]: reg index is [%u], but regfile has \
+		                 len [%u]", instr->vx, regfile_len);
+		return 1;
+	}
+
+	*alu_in1 = regfile[instr->vx];
+	return 0;
+}
+
+int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
+                    uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2)
+{
+	uint8_t index = 111; // force error if not set
+	if (ctrl->alu_src == 0)
+		index = instr->vy;
+	else if (ctrl->alu_src == 1)
+		index = instr->kk;
+
+	// check for out of bounds error
+	if (index >= regfile_len) {
+		fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
+		                 len [%u]", index, regfile_len);
+		return 1;
+	}
+
+	*alu_in2 = regfile[index];
+	return 0;
+}
+
+// execute alu based on alu_op ctrl bit
+int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
+             uint8_t *carryout, struct ctrl_bits *ctrl)
+{
+	*carryout = 0;
+	switch (ctrl->alu_op) {
+	case 0: // AND
+		*alu_res = alu_in1 & alu_in2;
+		break;
+	case 1: // OR
+		*alu_res = alu_in1 | alu_in2;
+		break;
+	case 2: // ADD
+		uint32_t res32 = (uint32_t)(alu_in1 + alu_in2);
+		*carryout = (res32 >> 16) & 0x1;
+		*alu_res = (uint16_t)res32;
+		break;
+	case 3: // SUB
+		uint32_t res32 = (uint32_t)(alu_in1 + ~alu_in2 + 1);
+		*carryout = (res32 >> 16) & 0x1;
+		*alu_res = (uint16_t)res32;
+		break;
+	case 4: // XOR
+		*alu_res = alu_in1 ^ alu_in2;
+		break;
+	case 5: // shift right
+		*alu_res = alu_in1 >> 1;
+		*carryout = alu_in1 & 0x1;
+		break;
+	case 6: // shift left
+		*alu_res = alu_in1 << 1;
+		*carryout = (alu_in1 >> 15) & 0x1;
+		break;
+	default:
+		fprintf(stderr, "Error [exec_alu]: Unknown alu op");
+		return 1;
+	}
 	return 0;
 }
