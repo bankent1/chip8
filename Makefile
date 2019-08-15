@@ -6,7 +6,7 @@ TARG = chip8
 
 CFLAGS = -g -Wall
 
-_OBJS = chip8.o phases.o
+_OBJS = chip8.o phases.o dbgutils.o
 OBJS = $(patsubst %, $(ODIR)/%, $(_OBJS))
 
 $(TARG): $(OBJS)
