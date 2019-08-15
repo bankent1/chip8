@@ -77,7 +77,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			// TODO:
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
 			return 1;
 		}
 		break;
@@ -142,7 +142,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			ctrl->alu_op = 6;
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
 			return 1;
 		}
 		break;
@@ -178,7 +178,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			// TODO: other bits ???
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
 			return 1;
 		}
 		break;
@@ -219,12 +219,12 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			// TODO
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
 			return 1;
 		}
 		break;
 	default:
-		fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction");
+		fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
 		return 1;
 	}
 	return 0;
@@ -236,7 +236,7 @@ int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len,
 	// check for out of bounds error
 	if (instr->vx >= regfile_len) {
 		fprintf(stderr, "Error [get_aluin1]: reg index is [%u], but regfile has \
-		                 len [%u]", instr->vx, regfile_len);
+		                 len [%u]\n", instr->vx, regfile_len);
 		return 1;
 	}
 
@@ -256,7 +256,7 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
 	// check for out of bounds error
 	if (index >= regfile_len) {
 		fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
-		                 len [%u]", index, regfile_len);
+		                 len [%u]\n", index, regfile_len);
 		return 1;
 	}
 
@@ -298,7 +298,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 		*carryout = (alu_in1 >> 15) & 0x1;
 		break;
 	default:
-		fprintf(stderr, "Error [exec_alu]: Unknown alu op");
+		fprintf(stderr, "Error [exec_alu]: Unknown alu op\n");
 		return 1;
 	}
 	return 0;
