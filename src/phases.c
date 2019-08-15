@@ -301,5 +301,6 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 		fprintf(stderr, "Error [exec_alu]: Unknown alu op\n");
 		return 1;
 	}
+	*alu_res = ctrl->not_alu_res == 1 ? !*alu_res : *alu_res;
 	return 0;
 }
