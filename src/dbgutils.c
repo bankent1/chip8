@@ -13,7 +13,7 @@
 
 void dump_instr(FILE *outfile, struct instruction *instr)
 {
-	fprintf(outfile, "Dumping instruction struct [0x%x]...\n", instr);
+	fprintf(outfile, "Dumping instruction struct [%p]...\n", instr);
 	fprintf(outfile, "opcode:    0x%x\n", instr->opcode);
 	fprintf(outfile, "vx:          %u\n", instr->vx);
 	fprintf(outfile, "vy:          %u\n", instr->vy);
@@ -22,7 +22,7 @@ void dump_instr(FILE *outfile, struct instruction *instr)
 
 void dump_ctrlbits(FILE *outfile, struct ctrl_bits *ctrl)
 {
-	fprintf(outfile, "Dumping ctrl-bits struct [0x%x]...\n", ctrl);
+	fprintf(outfile, "Dumping ctrl-bits struct [%p]...\n", ctrl);
 	fprintf(outfile, "vfwrite_enable:      %u\n", ctrl->vfwrite_enable);
 	fprintf(outfile, "reg_src:             %u\n", ctrl->reg_src);
 	fprintf(outfile, "write_reg:           %u\n", ctrl->write_reg);
@@ -60,7 +60,7 @@ void dump_regfile(FILE *outfile, uint8_t *regfile, size_t size)
 	for (int i = 0; i < size; i++) {
 		if ((i+1) % 8 == 0)
 			fprintf(outfile, "\n");
-		fprinf(outfile, "$%d: %u", i, regfile[i]);
+		fprintf(outfile, "$%d: %u", i, regfile[i]);
 	}
 	fprintf(outfile, "=========================\n");
 }

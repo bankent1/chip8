@@ -236,7 +236,7 @@ int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len,
 	// check for out of bounds error
 	if (instr->vx >= regfile_len) {
 		fprintf(stderr, "Error [get_aluin1]: reg index is [%u], but regfile has \
-		                 len [%u]\n", instr->vx, regfile_len);
+		                 len [%lu]\n", instr->vx, regfile_len);
 		return 1;
 	}
 
@@ -256,7 +256,7 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
 	// check for out of bounds error
 	if (index >= regfile_len) {
 		fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
-		                 len [%u]\n", index, regfile_len);
+		                 len [%lu]\n", index, regfile_len);
 		return 1;
 	}
 
@@ -269,6 +269,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
              uint8_t *carryout, struct ctrl_bits *ctrl)
 {
 	*carryout = 0;
+	uint32_t res32 = 0;
 	switch (ctrl->alu_op) {
 	case 0: // AND
 		*alu_res = alu_in1 & alu_in2;
@@ -277,12 +278,12 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 		*alu_res = alu_in1 | alu_in2;
 		break;
 	case 2: // ADD
-		uint32_t res32 = (uint32_t)(alu_in1 + alu_in2);
+		res32 = (uint32_t)(alu_in1 + alu_in2);
 		*carryout = (res32 >> 16) & 0x1;
 		*alu_res = (uint16_t)res32;
 		break;
 	case 3: // SUB
-		uint32_t res32 = (uint32_t)(alu_in1 + ~alu_in2 + 1);
+		res32 = (uint32_t)(alu_in1 + ~alu_in2 + 1);
 		*carryout = (res32 >> 16) & 0x1;
 		*alu_res = (uint16_t)res32;
 		break;

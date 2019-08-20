@@ -8,4 +8,4 @@ if [ ! -d obj ]; then
 fi
 
 # build the program
-make
+make all
