@@ -22,8 +22,8 @@ $(ODIR)/%.o: $(SDIR)/%.c
 	gcc $(CFLAGS) -c $< -o $@
 
 # TESTS
-tests: $(OBJS) $(TEST_OBJS)
-	gcc $(CFLAGS) $(OBJS) $(TEST_OBJS) -o tests
+runtests: $(OBJS) $(TEST_OBJS)
+	gcc $(CFLAGS) $(OBJS) $(TEST_OBJS) -o runtests
 
 $(ODIR)/%.o: $(SDIR)/tests/%.c
 	gcc $(CFLAGS) -c $< -o $@
@@ -31,4 +31,4 @@ $(ODIR)/%.o: $(SDIR)/tests/%.c
 
 .PHONY: clean
 clean:
-	rm -f $(ODIR)/*.o $(TARG) tests
+	rm -f $(ODIR)/*.o $(TARG) runtests
