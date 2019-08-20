@@ -4,9 +4,9 @@ if [ ! -d obj ]; then
 	mkdir obj
 fi
 
-make tests
+make runtests
 
 echo "====================="
 echo "    RUNNING TESTS"
 echo "====================="
-./tests
+./runtests
