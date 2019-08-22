@@ -143,6 +143,6 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
  */
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
               size_t memsize, size_t addr, uint8_t bin_char, uint16_t *regfile, 
-              size_t regsize)
+              size_t regsize);
 
 #endif
