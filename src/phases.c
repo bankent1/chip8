@@ -305,3 +305,34 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 	*alu_res = ctrl->not_alu_res == 1 ? !*alu_res : *alu_res;
 	return 0;
 }
+
+int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
+              size_t memsize, size_t addr, uint8_t bin_char, uint16_t *regfile, 
+              size_t regsize)
+{
+	if (ctrl->mem_write == 1) {
+		// array out of bounds check
+		if (addr > memsize) {
+			fprintf(stderr, "Error [mem_phase]: Address out of mem bounds\n");
+			return 1;
+		}
+
+		switch(ctrl->mem_src) {
+		case 0: // Binary Coded Value
+			mem[addr] = bin_char;
+			break;
+		case 1: // VX
+			if (instr->vx > regsize) {
+				fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds");
+				return 1;
+			}
+
+			mem[addr] = regfile[instr->vx]; 
+			break;
+		default:
+			fprintf(stderr, "Error [mem_phase]: Unknown mem_src given\n");
+			return 1;
+		}
+	}
+	return 0;
+}

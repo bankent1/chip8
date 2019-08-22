@@ -119,7 +119,6 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl);
 int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
                uint16_t *alu_in1);
 
-
 /*
  * Sets the value of *alu_in2 to the alu input based on the ctrl bits and instr
  * 
@@ -137,5 +136,13 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
  */
 int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
              uint8_t *carryout, struct ctrl_bits *ctrl);
+/*
+ * Executes the mem phase of the chip 8 processor.
+ *
+ * Returns 1 on error, 0 on success. 
+ */
+int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
+              size_t memsize, size_t addr, uint8_t bin_char, uint16_t *regfile, 
+              size_t regsize)
 
 #endif
