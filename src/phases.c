@@ -307,7 +307,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 }
 
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
-              size_t memsize, size_t addr, uint8_t bin_char, uint16_t *regfile, 
+              size_t memsize, size_t addr, uint8_t bin_char, uint8_t *regfile, 
               size_t regsize)
 {
 	if (ctrl->mem_write == 1) {
@@ -334,5 +334,47 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
 			return 1;
 		}
 	}
+	return 0;
+}
+
+int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
+            size_t addr, size_t memsize, uint8_t *regfile, size_t regsize, 
+            uint16_t alu_res, uint8_t randnum)
+{
+	if (ctrl->write_reg) {
+		if (instr->vx) {
+			fprintf(stderr, "Error [wbphase]: Regfile out of bounds");
+			return 1;
+		}
+		switch (ctrl->reg_src) {
+		case 0: // DT (delay timer)
+			// TODO
+			break;
+		case 1: // Rand
+			regfile[instr->vx] = randnum;
+			break;
+		case 2: // Mem
+			if (addr > memsize) {
+				fprintf(stderr, "Error [wbphase]: Mem out of bounds");
+				return 1;
+			}
+
+			regfile[instr->vx] = mem[addr];
+			break;
+		case 3: // kk
+			regfile[instr->vx] = instr->kk;
+			break;
+		case 4: // key press
+			// TODO
+			break;
+		case 5: // alu_res
+			regfile[instr->vx] = (uint16_t) alu_res;
+			break;
+		default:
+			fprintf(stderr, "Error [wbphase]: Unknown reg src");
+			return 1;
+		}
+	}
+
 	return 0;
 }
