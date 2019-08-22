@@ -1,13 +1,20 @@
+/*
+ *
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 
+#include "chip8.h"
 #include "phases.h"
+#include "dbgutils.h"
 
-#define FOUR_KB 4096
-#define MEM_SIZE FOUR_KB
+// memsize = 4KB
+#define MEM_SIZE 4096
 #define NUM_REGS 16
 
-void zero_mem(uint8_t *mem, size_t size);
+#define DATA_START 0x200
+#define INSTR_START 0x80
 
 int main(int argc, char *argv[])
 {
@@ -20,11 +27,17 @@ int main(int argc, char *argv[])
 	// init reg_file and spec regs
 	uint8_t reg_file[NUM_REGS];
 	uint16_t I_reg = 0;
-	// TODO: Delay and sound registers
-	
-	// TODO: Fetch Instruction
-	// TODO: Decode Instruction
-	// TODO: Execute Instruction
+
+	FILE *program = fopen("roms/jason.ch8", "r");
+	if (program == NULL) {
+		perror("fopen");
+		return 1;
+	}
+
+	if (load_program(mem, program) != 0) {
+		fprintf(stderr, "[load_program] failed, exiting...");
+		return 1;
+	}
 
 	return 0;
 }
@@ -34,4 +47,26 @@ void zero_mem(uint8_t *mem, size_t size)
 	for (int i = 0; i < size; i++) {
 		mem[i] = 0;
 	}
+}
+
+int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, size_t regsize)
+{
+	for (int i = INSTR_START; i < DATA_START; i++) {
+		
+	}
+	
+	return 0;
+}
+
+int load_program(uint8_t *mem, FILE *bin_prog)
+{
+	uint8_t *memptr = mem + INSTR_START;
+	if (fread(memptr, 1, (DATA_START - INSTR_START), bin_prog) == 0) {
+		if (ferror(bin_prog) != 0) {
+			fprintf(stderr, "Error [load_program]: Error on fread");
+			return 1;
+		}
+	}
+
+	return 0;
 }

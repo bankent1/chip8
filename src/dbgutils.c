@@ -43,14 +43,14 @@ void dump_ctrlbits(FILE *outfile, struct ctrl_bits *ctrl)
 
 void dump_mem(FILE *outfile, uint8_t *mem, size_t size)
 {
-	fprintf(outfile, "=========================\n");
-	fprintf(outfile, "      Dumping MEMORY     \n");
+	fprintf(outfile, "==============================================\n");
+	fprintf(outfile, "             *** Dumping MEMORY ***           \n");
 	for (int i = 0; i < size; i++) {
-		if ((i+1) % 8 == 0)
+		if ((i) % 8 == 0)
 			fprintf(outfile, "\n");
-		fprintf(outfile, "0x%04x: 0x%02x", i, mem[i]);
+		fprintf(outfile, "0x%04x: 0x%02x  |  ", i, mem[i]);
 	}
-	fprintf(outfile, "=========================\n");
+	fprintf(outfile, "\n\n==============================================\n");
 }
 
 void dump_regfile(FILE *outfile, uint8_t *regfile, size_t size)
@@ -60,7 +60,7 @@ void dump_regfile(FILE *outfile, uint8_t *regfile, size_t size)
 	for (int i = 0; i < size; i++) {
 		if ((i+1) % 8 == 0)
 			fprintf(outfile, "\n");
-		fprintf(outfile, "$%d: %u", i, regfile[i]);
+		fprintf(outfile, "$%d: %u  |  ", i, regfile[i]);
 	}
 	fprintf(outfile, "=========================\n");
 }

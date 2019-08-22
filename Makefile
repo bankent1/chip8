@@ -9,7 +9,7 @@ CFLAGS = -g -Wall
 _OBJS = phases.o dbgutils.o
 OBJS = $(patsubst %, $(ODIR)/%, $(_OBJS))
 
-HDRS = phases.h dbgutils.h
+HDRS = phases.h dbgutils.h chip8.h
 
 _TEST_OBJS = testall.o test-phases.o
 TEST_OBJS = $(patsubst %, $(ODIR)/%, $(_TEST_OBJS))
