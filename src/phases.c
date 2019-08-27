@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include "phases.h"
+#include "chip8-error.h"
 
 /*
  * Fetches the instruction from the given address.
@@ -21,7 +22,7 @@
 int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
 {
 	if (addr >= size || addr + 1 >= size) {
-		fprintf(stderr, "Error [fetch_instr]: addr [0x%x] too large\n", addr);
+		PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", addr);
 		return 1;
 	}
 
@@ -77,7 +78,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			// TODO:
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
+			PRINT_ERROR("fill_instr_bits", "Unkown instruction\n");
 			return 1;
 		}
 		break;
@@ -142,7 +143,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			ctrl->alu_op = 6;
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
+			PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
 			return 1;
 		}
 		break;
@@ -178,7 +179,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 			// TODO: other bits ???
 			break;
 		default:
-			fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
+			PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
 			return 1;
 		}
 		break;

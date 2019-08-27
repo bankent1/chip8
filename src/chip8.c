@@ -1,5 +1,9 @@
 /*
+ * chip8.c
  *
+ * Author: Travis Banken
+ *
+ * Main file for the chip 8 processor
  */
 
 #include <stdio.h>
@@ -8,6 +12,7 @@
 #include "chip8.h"
 #include "phases.h"
 #include "dbgutils.h"
+#include "chip8-error.h"
 
 // memsize = 4KB
 #define MEM_SIZE 4096
@@ -35,7 +40,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (load_program(mem, program) != 0) {
-		fprintf(stderr, "[load_program] failed, exiting...");
+		EXIT_ERROR("load_program");
 		return 1;
 	}
 
@@ -63,7 +68,7 @@ int load_program(uint8_t *mem, FILE *bin_prog)
 	uint8_t *memptr = mem + INSTR_START;
 	if (fread(memptr, 1, (DATA_START - INSTR_START), bin_prog) == 0) {
 		if (ferror(bin_prog) != 0) {
-			fprintf(stderr, "Error [load_program]: Error on fread");
+			PRINT_ERROR("load_program", "Error on fread");
 			return 1;
 		}
 	}
