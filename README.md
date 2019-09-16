@@ -12,3 +12,6 @@ NOTE: This is currently in a very early state and is not ready for use.
 
 ## Clean
 ```./clean.sh```
+
+## Run Tests
+```./test.sh```
