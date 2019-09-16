@@ -44,6 +44,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (exec_program(mem, MEM_SIZE, regfile, NUM_REGS) != 0) {
+		EXIT_ERROR("exec_program");
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -54,13 +59,78 @@ void zero_mem(uint8_t *mem, size_t size)
 	}
 }
 
-int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, size_t regsize)
+int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, size_t regsize, 
+                 uint16_t *i_reg)
 {
-	for (int i = INSTR_START; i < DATA_START; i++) {
-		
+	int rc = 0;
+
+	struct instruction *instr = malloc(sizeof(struct instruction));
+	struct ctrl_bits *ctrl = malloc(sizeof(struct ctrl_bits));
+
+	size_t pc = INSTR_START;
+	while (pc < DATA_START) {
+		if (pc < INSTR_START) {
+			PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", pc);
+			rc = 1;
+			break;
+		}
+
+		// fetch instr
+		uint16_t raw_instr;
+		if (fetch_instr(mem, memsize, pc, &raw_instr) != 0) {
+			EXIT_ERROR("fetch_instr");
+			rc = 1;
+			break;
+		}
+
+		// decode instr
+		decode_instr(raw_instr, instr);
+
+		// fill ctrl bits
+		if (fill_ctrl_bits(instr, ctrl) != 0) {
+			EXIT_ERROR("fill_ctrl_bits");
+			rc = 1;
+			break;
+		}
+
+		// exec alu
+		uint16_t alu_in1, alu_in2;
+		if (get_aluin1(instr, regfile, regfile_len, &alu_in1) != 0) {
+			EXIT_ERROR("get_aluin1");
+			rc = 1;
+			break;
+		}
+
+		if (get_aluin2(ctrl, instr, regfile, regfile_len, &alu_in2) != 0) {
+			EXIT_ERROR("get_aluin2");
+			rc = 1;
+			break;
+		}
+
+		uint16_t alu_res;
+		uint8_t carry_out;
+		if (exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl) != 0) {
+			EXIT_ERROR("exec_alu");
+			rc = 1;
+			break;
+		}
+
+		// TODO: exec mem
+		mem_phase(ctrl, instr, mem, memsize, i_reg, 0/* bin_char */, regfile, regsize);
+
+		// TODO: exec wb
+		int randnum = rand(); // may need optimization
+
+		// TODO: write I
+
+		// TODO: carry out
+		// TODO: get next pc
 	}
-	
-	return 0;
+
+	// clean up and return
+	free(instr);
+	free(ctrl);
+	return rc;
 }
 
 int load_program(uint8_t *mem, FILE *bin_prog)

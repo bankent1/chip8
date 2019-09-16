@@ -308,7 +308,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 }
 
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
-              size_t memsize, size_t addr, uint8_t bin_char, uint8_t *regfile, 
+              size_t memsize, uint16_t *i_reg, uint8_t bin_char, uint8_t *regfile, 
               size_t regsize)
 {
 	if (ctrl->mem_write == 1) {
@@ -320,15 +320,20 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
 
 		switch(ctrl->mem_src) {
 		case 0: // Binary Coded Value
-			mem[addr] = bin_char;
+			// TODO
+			mem[*i_reg] = bin_char;
 			break;
 		case 1: // VX
-			if (instr->vx > regsize) {
-				fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds");
-				return 1;
+			// store vals in regs v0-vx into mem starting at I reg
+			size_t addr = *i_reg;
+			for (int i = 0; i <= instr->vx; i++) {
+				if (addr >= regsize) {
+					fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds");
+					return 1;
+				}
+				mem[addr] = regfile[i]; 
+				addr++;
 			}
-
-			mem[addr] = regfile[instr->vx]; 
 			break;
 		default:
 			fprintf(stderr, "Error [mem_phase]: Unknown mem_src given\n");
@@ -339,7 +344,7 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
 }
 
 int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
-            size_t addr, size_t memsize, uint8_t *regfile, size_t regsize, 
+            uint16_t *i_reg, size_t memsize, uint8_t *regfile, size_t regsize, 
             uint16_t alu_res, uint8_t randnum)
 {
 	if (ctrl->write_reg) {
@@ -355,12 +360,16 @@ int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
 			regfile[instr->vx] = randnum;
 			break;
 		case 2: // Mem
-			if (addr > memsize) {
-				fprintf(stderr, "Error [wbphase]: Mem out of bounds");
-				return 1;
+			// write into regs V0-VX starting at addr stored in I
+			size_t addr = *i_reg;
+			for (int i = 0; i <= instr->vx; i++) {
+				if (addr >= memsize) {
+					fprintf(stderr, "Error [wbphase]: Mem out of bounds");
+					return 1;
+				}
+				regfile[i] = mem[addr];
+				addr++;
 			}
-
-			regfile[instr->vx] = mem[addr];
 			break;
 		case 3: // kk
 			regfile[instr->vx] = instr->kk;
