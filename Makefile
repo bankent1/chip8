@@ -3,8 +3,9 @@ VPATH=src/:obj/:src/tests/
 ODIR = obj
 SDIR  = src
 TARG = chip8
+HDIR = ./include
 
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -I$(HDIR)
 
 _OBJS = phases.o dbgutils.o
 OBJS = $(patsubst %, $(ODIR)/%, $(_OBJS))

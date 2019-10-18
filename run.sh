@@ -7,6 +7,6 @@ set -e
 
 # run the program
 echo "============================="
-echo "Running CHIP 8 Emulator"
+echo "  Running CHIP 8 Emulator    "
 echo "============================="
 ./chip8

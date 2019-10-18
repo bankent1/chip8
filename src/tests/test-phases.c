@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../phases.h"
-#include "tests.h"
+#include "phases.h"
+#include "tests/tests.h"
 
 int test_exec_alu()
 {
