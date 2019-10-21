@@ -27,7 +27,7 @@ int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
     }
 
     *instr = (mem[addr] << 8) | mem[addr + 1];
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 /*
@@ -144,7 +144,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             break;
         default:
             PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
-            return 1;
+            return CHIP8_ERROR;
         }
         break;
     case 0x9: // skp nxt instr if vx != vy
@@ -180,7 +180,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             break;
         default:
             PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
-            return 1;
+            return CHIP8_ERROR;
         }
         break;
     case 0xF:
@@ -222,15 +222,15 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
         default:
             // fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
             PRINT_ERROR("fill_instr_bits", "Unknown instruction");
-            return 1;
+            return CHIP8_ERROR;
         }
         break;
     default:
         // fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
         PRINT_ERROR("fill_ctrl_bits", "Unknown instruction");
-        return 1;
+        return CHIP8_ERROR;
     }
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
@@ -245,7 +245,7 @@ int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len,
     }
 
     *alu_in1 = regfile[instr->vx];
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
@@ -259,13 +259,14 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
 
     // check for out of bounds error
     if (index >= regfile_len) {
-        fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
-                         len [%lu]\n", index, regfile_len);
-        return 1;
+        // fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
+        //                  len [%lu]\n", index, regfile_len);
+        PRINT_ERROR("get_aluin2", "reg index is [%u], but regfile has len [%lu]\n", index, regfile_len);
+        return CHIP8_ERROR;
     }
 
     *alu_in2 = regfile[index];
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 // execute alu based on alu_op ctrl bit
@@ -303,11 +304,12 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
         *carryout = (alu_in1 >> 15) & 0x1;
         break;
     default:
-        fprintf(stderr, "Error [exec_alu]: Unknown alu op\n");
-        return 1;
+        // fprintf(stderr, "Error [exec_alu]: Unknown alu op\n");
+        PRINT_ERROR("exec_alu", "Unknown alu op\n");
+        return CHIP8_ERROR;
     }
     *alu_res = ctrl->not_alu_res == 1 ? !*alu_res : *alu_res;
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
@@ -315,34 +317,52 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
 {
     if (ctrl->mem_write == 1) {
         // array out of bounds check
-        if (addr > memsize) {
-            fprintf(stderr, "Error [mem_phase]: Address out of mem bounds\n");
-            return 1;
+        if (addr >= memsize) {
+            // fprintf(stderr, "Error [mem_phase]: Address out of mem bounds\n");
+            PRINT_ERROR("mem_phase", "Address out of mem bounds\n");
+            return CHIP8_ERROR;
         }
 
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
-            // TODO
-            mem[*i_reg] = bin_char;
+            if (instr->vx >= regsize) {
+                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx);
+                return CHIP8_ERROR;
+            }
+
+            // convert VX value to text and store encoding at mem[I_reg]
+            uint8_t encoded_num[5];
+            encode(encoded_num, regfile[instr->vx]);
+            for (int i = 0; i < 5; i++) {
+                mem[*i_reg + i] = encoded_num[i];
+            }
             break;
         case 1: // VX
             // store vals in regs v0-vx into mem starting at I reg
             size_t addr = *i_reg;
+            if (addr >= memsize) {
+                // fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds\n");
+                PRINT_ERROR("mem_phase", "Mem access out of bounds\n");
+                return CHIP8_ERROR;
+            }
+
+            if (instr->vx >= regsize) {
+                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx);
+                return CHIP8_ERROR;
+            }
+            
             for (int i = 0; i <= instr->vx; i++) {
-                if (addr >= regsize) {
-                    fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds\n");
-                    return 1;
-                }
                 mem[addr] = regfile[i]; 
                 addr++;
             }
             break;
         default:
-            fprintf(stderr, "Error [mem_phase]: Unknown mem_src given\n");
-            return 1;
+            // fprintf(stderr, "Error [mem_phase]: Unknown mem_src given\n");
+            PRINT_ERROR("mem_phase", "Unknown mem_src given\n");
+            return CHIP8_ERROR;
         }
     }
-    return 0;
+    return CHIP8_SUCCESS;
 }
 
 int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
@@ -389,4 +409,124 @@ int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
     }
 
     return 0;
+}
+
+// *** HELPER FUNCTIONS ***
+static void encode(uint8_t *buf, uint8_t num)
+{
+    // encode num into 5 bytes to be drawn on a screen
+    switch(num) {
+    case 0x00:
+        buf[0] = 0xF0;
+        buf[1] = 0x90;
+        buf[2] = 0x90;
+        buf[3] = 0x90;
+        buf[4] = 0xF0;
+        break;
+    case 0x01:
+        buf[0] = 0x20;
+        buf[1] = 0x60;
+        buf[2] = 0x20;
+        buf[3] = 0x20;
+        buf[4] = 0x70;
+        break;
+    case 0x02:
+        buf[0] = 0xF0;
+        buf[1] = 0x10;
+        buf[2] = 0xF0;
+        buf[3] = 0x80;
+        buf[4] = 0xF0;
+        break;
+    case 0x03:
+        buf[0] = 0xF0;
+        buf[1] = 0x10;
+        buf[2] = 0xF0;
+        buf[3] = 0x10;
+        buf[4] = 0xF0;
+        break;
+    case 0x04:
+        buf[0] = 0x90;
+        buf[1] = 0x90;
+        buf[2] = 0xF0;
+        buf[3] = 0x10;
+        buf[4] = 0x10;
+        break;
+    case 0x05:
+        buf[0] = 0xF0;
+        buf[1] = 0x80;
+        buf[2] = 0xF0;
+        buf[3] = 0x10;
+        buf[4] = 0xF0;
+        break;
+    case 0x06:
+        buf[0] = 0xF0;
+        buf[1] = 0x80;
+        buf[2] = 0xF0;
+        buf[3] = 0x90;
+        buf[4] = 0xF0;
+        break;
+    case 0x07:
+        buf[0] = 0xF0;
+        buf[1] = 0x10;
+        buf[2] = 0x20;
+        buf[3] = 0x40;
+        buf[4] = 0x40;
+        break;
+    case 0x08:
+        buf[0] = 0xF0;
+        buf[1] = 0x90;
+        buf[2] = 0xF0;
+        buf[3] = 0x90;
+        buf[4] = 0xF0;
+        break;
+    case 0x09:
+        buf[0] = 0xF0;
+        buf[1] = 0x90;
+        buf[2] = 0xF0;
+        buf[3] = 0x10;
+        buf[4] = 0xF0;
+        break;
+    case 0x0a:
+        buf[0] = 0xF0;
+        buf[1] = 0x90;
+        buf[2] = 0xF0;
+        buf[3] = 0x90;
+        buf[4] = 0x90;
+        break;
+    case 0x0b:
+        buf[0] = 0xE0;
+        buf[1] = 0x90;
+        buf[2] = 0xE0;
+        buf[3] = 0x90;
+        buf[4] = 0xE0;
+        break;
+    case 0x0c:
+        buf[0] = 0xF0;
+        buf[1] = 0x80;
+        buf[2] = 0x80;
+        buf[3] = 0x80;
+        buf[4] = 0xF0;
+        break;
+    case 0x0d:
+        buf[0] = 0xE0;
+        buf[1] = 0x90;
+        buf[2] = 0x90;
+        buf[3] = 0x90;
+        buf[4] = 0xE0;
+        break;
+    case 0x0e:
+        buf[0] = 0xF0;
+        buf[1] = 0x80;
+        buf[2] = 0xF0;
+        buf[3] = 0x80;
+        buf[4] = 0xF0;
+        break;
+    case 0x0f:
+        buf[0] = 0xF0;
+        buf[1] = 0x80;
+        buf[2] = 0xF0;
+        buf[3] = 0x80;
+        buf[4] = 0x80;
+        break;
+    }
 }

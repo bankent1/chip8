@@ -121,8 +121,12 @@ int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, size_t regsize,
             break;
         }
 
-        // TODO: exec mem
         res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("mem_phase");
+            rc = 1;
+            break;
+        }
 
         // TODO: exec wb
         int randnum = rand(); // may need optimization
