@@ -20,128 +20,134 @@
 
 #define DATA_START 0x200
 #define INSTR_START 0x80
+#define FONT_SET_START 0x00
 
 int main(int argc, char *argv[])
 {
-	printf("Hello, CHIP 8!\n");
+    printf("Hello, CHIP 8!\n");
 
-	// init memory
-	uint8_t mem[MEM_SIZE];
-	zero_mem(mem, MEM_SIZE);
+    // init memory
+    uint8_t mem[MEM_SIZE];
+    zero_mem(mem, MEM_SIZE);
 
-	// init reg_file and spec regs
-	uint8_t reg_file[NUM_REGS];
-	uint16_t I_reg = 0;
+    // init reg_file and spec regs
+    uint8_t reg_file[NUM_REGS];
+    uint16_t I_reg = 0;
 
-	FILE *program = fopen("roms/jason.ch8", "r");
-	if (program == NULL) {
-		perror("fopen");
-		return 1;
-	}
+    FILE *program = fopen("roms/jason.ch8", "r");
+    if (program == NULL) {
+        perror("fopen");
+        return 1;
+    }
 
-	if (load_program(mem, program) != 0) {
-		EXIT_ERROR("load_program");
-		return 1;
-	}
+    if (load_program(mem, program) != CHIP8_SUCCESS) {
+        EXIT_ERROR("load_program");
+        return 1;
+    }
 
-	if (exec_program(mem, MEM_SIZE, regfile, NUM_REGS) != 0) {
-		EXIT_ERROR("exec_program");
-		return 1;
-	}
+    if (exec_program(mem, MEM_SIZE, regfile, NUM_REGS) != CHIP8_SUCCESS) {
+        EXIT_ERROR("exec_program");
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 void zero_mem(uint8_t *mem, size_t size)
 {
-	for (int i = 0; i < size; i++) {
-		mem[i] = 0;
-	}
+    for (int i = 0; i < size; i++) {
+        mem[i] = 0;
+    }
 }
 
 int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, size_t regsize, 
                  uint16_t *i_reg)
 {
-	int rc = 0;
+    int rc = 0;
+    int res = 0;
 
-	struct instruction *instr = malloc(sizeof(struct instruction));
-	struct ctrl_bits *ctrl = malloc(sizeof(struct ctrl_bits));
+    struct instruction *instr = malloc(sizeof(struct instruction));
+    struct ctrl_bits *ctrl = malloc(sizeof(struct ctrl_bits));
 
-	size_t pc = INSTR_START;
-	while (pc < DATA_START) {
-		if (pc < INSTR_START) {
-			PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", pc);
-			rc = 1;
-			break;
-		}
+    size_t pc = INSTR_START;
+    while (pc < DATA_START) {
+        if (pc < INSTR_START) {
+            PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", pc);
+            rc = 1;
+            break;
+        }
 
-		// fetch instr
-		uint16_t raw_instr;
-		if (fetch_instr(mem, memsize, pc, &raw_instr) != 0) {
-			EXIT_ERROR("fetch_instr");
-			rc = 1;
-			break;
-		}
+        // fetch instr
+        uint16_t raw_instr;
+        if (fetch_instr(mem, memsize, pc, &raw_instr) != CHIP8_SUCCESS) {
+            EXIT_ERROR("fetch_instr");
+            rc = 1;
+            break;
+        }
 
-		// decode instr
-		decode_instr(raw_instr, instr);
+        // decode instr
+        decode_instr(raw_instr, instr);
 
-		// fill ctrl bits
-		if (fill_ctrl_bits(instr, ctrl) != 0) {
-			EXIT_ERROR("fill_ctrl_bits");
-			rc = 1;
-			break;
-		}
+        // fill ctrl bits
+        res = fill_ctrl_bits(instr, ctrl);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("fill_ctrl_bits");
+            rc = 1;
+            break;
+        }
 
-		// exec alu
-		uint16_t alu_in1, alu_in2;
-		if (get_aluin1(instr, regfile, regfile_len, &alu_in1) != 0) {
-			EXIT_ERROR("get_aluin1");
-			rc = 1;
-			break;
-		}
+        // exec alu
+        uint16_t alu_in1, alu_in2;
+        res = get_aluin1(instr, regfile, regfile_len, &alu_in1);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("get_aluin1");
+            rc = 1;
+            break;
+        }
 
-		if (get_aluin2(ctrl, instr, regfile, regfile_len, &alu_in2) != 0) {
-			EXIT_ERROR("get_aluin2");
-			rc = 1;
-			break;
-		}
+        res = get_aluin2(ctrl, instr, regfile, regfile_len, &alu_in2);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("get_aluin2");
+            rc = 1;
+            break;
+        }
 
-		uint16_t alu_res;
-		uint8_t carry_out;
-		if (exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl) != 0) {
-			EXIT_ERROR("exec_alu");
-			rc = 1;
-			break;
-		}
+        uint16_t alu_res;
+        uint8_t carry_out;
+        res = exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("exec_alu");
+            rc = 1;
+            break;
+        }
 
-		// TODO: exec mem
-		mem_phase(ctrl, instr, mem, memsize, i_reg, 0/* bin_char */, regfile, regsize);
+        // TODO: exec mem
+        res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
 
-		// TODO: exec wb
-		int randnum = rand(); // may need optimization
+        // TODO: exec wb
+        int randnum = rand(); // may need optimization
 
-		// TODO: write I
+        // TODO: write I
 
-		// TODO: carry out
-		// TODO: get next pc
-	}
+        // TODO: carry out
+        // TODO: get next pc
+    }
 
-	// clean up and return
-	free(instr);
-	free(ctrl);
-	return rc;
+    // clean up and return
+    free(instr);
+    free(ctrl);
+    return rc;
 }
 
 int load_program(uint8_t *mem, FILE *bin_prog)
 {
-	uint8_t *memptr = mem + INSTR_START;
-	if (fread(memptr, 1, (DATA_START - INSTR_START), bin_prog) == 0) {
-		if (ferror(bin_prog) != 0) {
-			PRINT_ERROR("load_program", "Error on fread");
-			return 1;
-		}
-	}
+    uint8_t *memptr = mem + INSTR_START;
+    if (fread(memptr, 1, (DATA_START - INSTR_START), bin_prog) == 0) {
+        if (ferror(bin_prog) != 0) {
+            PRINT_ERROR("load_program", "Error on fread");
+            return 1;
+        }
+    }
 
-	return 0;
+    return 0;
 }

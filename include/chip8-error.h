@@ -12,3 +12,9 @@
 
 #define EXIT_ERROR(function) fprintf(stderr, "[%s] failed, exiting...\n", function);
 
+
+
+// ERROR CODES
+#define CHIP8_SUCCESS 0
+#define CHIP8_ERROR 1
+

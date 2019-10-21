@@ -5,89 +5,89 @@
 
 // helper struct for holding the different data from the component
 struct instruction {
-	// 4 bits
-	uint8_t opcode;
-	uint8_t vx;
-	uint8_t vy;
-	uint8_t funct;
-	
-	// 8 bits
-	uint8_t kk;
+    // 4 bits
+    uint8_t opcode;
+    uint8_t vx;
+    uint8_t vy;
+    uint8_t funct;
+    
+    // 8 bits
+    uint8_t kk;
 
-	// 12 bits
-	uint16_t nnn;
+    // 12 bits
+    uint16_t nnn;
 };
 
 // structure for holding the control bits of the emulator
 struct ctrl_bits {
-	uint8_t vfwrite_enable;
+    uint8_t vfwrite_enable;
 
-	// 0 - DT (delay timer)
-	// 1 - Rand
-	// 2 - mem
-	// 3 - kk (imm)
-	// 4 - key press
-	// 5 - alu_res
-	uint8_t reg_src;
-	uint8_t write_reg;
+    // 0 - DT (delay timer)
+    // 1 - Rand
+    // 2 - mem
+    // 3 - kk (imm)
+    // 4 - key press
+    // 5 - alu_res
+    uint8_t reg_src;
+    uint8_t write_reg;
 
-	// 0 - I
-	// 1 - I + ALU/NNN
-	// 2 - I + 1
-	uint8_t i_src;
+    // 0 - I
+    // 1 - I + ALU/NNN
+    // 2 - I + 1
+    uint8_t i_src;
 
-	// 0 - Binary Coded Value
-	// 1 - VX
-	uint8_t mem_src;
-	uint8_t mem_write;
+    // 0 - Binary Coded Value
+    // 1 - VX
+    uint8_t mem_src;
+    uint8_t mem_write;
 
-	// frame buf write
-	uint8_t fb_write;
+    // frame buf write
+    uint8_t fb_write;
 
-	// ???
-	uint8_t fb_row;
+    // ???
+    uint8_t fb_row;
 
-	// 0 - sp
-	// 1 - sp + 1
-	// 2 - sp - 1 
-	uint8_t sp_src;
+    // 0 - sp
+    // 1 - sp + 1
+    // 2 - sp - 1 
+    uint8_t sp_src;
 
-	uint8_t sp_write;
+    uint8_t sp_write;
 
-	// 0 - PC + 2
-	// 1 - PC
-	// 2 - PC + 4
-	// 3 - NNN
-	// 4 - v0 + nnn
-	// 5 - stack
-	uint8_t pc_src;
+    // 0 - PC + 2
+    // 1 - PC
+    // 2 - PC + 4
+    // 3 - NNN
+    // 4 - v0 + nnn
+    // 5 - stack
+    uint8_t pc_src;
 
-	// 0 - ST-1
-	// 1 - VX
-	uint8_t delay_hold;
+    // 0 - ST-1
+    // 1 - VX
+    uint8_t delay_hold;
 
-	// 0 - ST-1
-	// 1 - VX
-	uint8_t sound_hold;
+    // 0 - ST-1
+    // 1 - VX
+    uint8_t sound_hold;
 
-	// ???
-	uint8_t xpointer;
+    // ???
+    uint8_t xpointer;
 
-	// 0 - VY
-	// 1 - kk
-	// 2 - literal 0 // not used?
-	uint8_t alu_src;
+    // 0 - VY
+    // 1 - kk
+    // 2 - literal 0 // not used?
+    uint8_t alu_src;
 
-	// 0 - AND
-	// 1 - OR
-	// 2 - ADD
-	// 3 - SUB
-	// 4 - XOR
-	// 5 - shift right
-	// 6 - shift left
-	uint8_t alu_op;
+    // 0 - AND
+    // 1 - OR
+    // 2 - ADD
+    // 3 - SUB
+    // 4 - XOR
+    // 5 - shift right
+    // 6 - shift left
+    uint8_t alu_op;
 
-	uint8_t not_alu_res;
+    uint8_t not_alu_res;
 };
 
 /*
@@ -144,7 +144,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
               size_t memsize, uint16_t *i_reg, uint8_t bin_char, uint8_t *regfile, 
               size_t regsize);
-			  
+              
 /*
  * Executes the write-back phase of the chip 8 processor.
  *
