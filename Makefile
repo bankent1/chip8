@@ -8,7 +8,6 @@ CFLAGS += -g # debug
 # CFLAGS += -O3 # release optimizations
 
 SDIR = ./src
-ODIR = ./build
 TDIR = $(SDIR)/tests
 
 CSRC = $(wildcard $(SDIR)/*.c)
@@ -20,7 +19,7 @@ TOBJ = $(TESTS:.c=.o)
 TEST_TARGET = runtests
 
 .PHONY: all makedebug
-all: makedebug $(TARGET)
+all: $(TARGET)
 
 makedebug:
 	@echo make degub is on
