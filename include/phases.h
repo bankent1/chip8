@@ -142,7 +142,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
  * Returns 1 on error, 0 on success. 
  */
 int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
-              size_t memsize, uint16_t *i_reg, uint8_t bin_char, uint8_t *regfile, 
+              size_t memsize, uint16_t *i_reg, uint8_t *regfile, 
               size_t regsize);
               
 /*

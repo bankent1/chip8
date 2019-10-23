@@ -9,8 +9,6 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
-void zero_mem(uint8_t *mem, size_t size);
 
-int load_program(uint8_t *mem, FILE *bin_prog);
 
 #endif

@@ -1,41 +1,50 @@
-VPATH=src/:obj/:src/tests/
+TARGET = chip8
+INCLUDE = ./include
 
-ODIR = obj
-SDIR  = src
-TARG = chip8
-HDIR = ./include
+CC = gcc
 
-CFLAGS = -g -Wall -I$(HDIR)
+CFLAGS = -Wall -I$(INCLUDE)
+CFLAGS += -g # debug
+# CFLAGS += -O3 # release optimizations
 
-_OBJS = phases.o dbgutils.o
-OBJS = $(patsubst %, $(ODIR)/%, $(_OBJS))
+SDIR = ./src
+ODIR = ./build
+TDIR = $(SDIR)/tests
 
-HDRS = phases.h dbgutils.h chip8.h
+CSRC = $(wildcard $(SDIR)/*.c)
+COBJS = ${CSRC:.c=.o}
 
-_TEST_OBJS = testall.o test-phases.o
-TEST_OBJS = $(patsubst %, $(ODIR)/%, $(_TEST_OBJS))
+TESTS = $(wildcard $(TDIR)/*.c)
+TOBJ = $(TESTS:.c=.o)
 
-TEST_HDRS = tests.h
+TEST_TARGET = runtests
 
-TEST_TARG = runtests
+.PHONY: all makedebug
+all: makedebug $(TARGET)
 
-.PHONY: all
-all: $(TARG)
+makedebug:
+	@echo make degub is on
+	@echo $(COBJS)
 
-$(TARG): $(OBJS) $(ODIR)/chip8.o  
-	gcc $(CFLAGS) $(OBJS) $(ODIR)/chip8.o -o $(TARG)
+$(TARGET): $(COBJS)
+	$(CC) $(CFLAGS) $(COBJS) -o $(TARGET)
 
-$(ODIR)/%.o: $(SDIR)/%.c $(HDRS)
-	gcc $(CFLAGS) -c $< -o $@
+$(SDIR)/%.o: $(SDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# ===== TESTS =====
-$(TEST_TARG): $(OBJS) $(TEST_OBJS)
-	gcc $(CFLAGS) $(OBJS) $(TEST_OBJS) -o $(TEST_TARG)
 
-$(ODIR)/%.o: $(SDIR)/tests/%.c $(TEST_HDRS) $(HDRS)
-	gcc $(CFLAGS) -c $< -o $@
-	
+# TESTS
+.PHONY: tests
+tests: $(TEST_TARGET)
 
+$(TEST_TARGET): $(COBJS) $(TOBJ)
+	$(CC) $(CFLAGS) $(COBJS) $(TOBJ) -o $(TEST_TARGET) 
+
+$(TDIR)/%.o: $(TDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# CLEAN
 .PHONY: clean
+
 clean:
-	rm -f $(ODIR)/*.o $(TARG) $(TEST_TARG)
+	rm -f $(COBJS) $(TOBJ) $(TARGET) $(TEST_TARGET)

@@ -7,10 +7,10 @@
  */
 
 #define PRINT_ERROR(function, reason, ...) \
-    fprintf(stderr, "Error [%s]: ", function); \
-    fprintf(stderr, reason, __VA_ARGS__);
+    fprintf((stderr), "Error [%s]: ", (function)); \
+    fprintf((stderr), (reason), ##__VA_ARGS__);
 
-#define EXIT_ERROR(function) fprintf(stderr, "[%s] failed, exiting...\n", function);
+#define EXIT_ERROR(function) fprintf(stderr, "[%s] failed, exiting...\n", (function));
 
 
 

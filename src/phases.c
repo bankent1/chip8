@@ -14,6 +14,8 @@
 #include "phases.h"
 #include "chip8-error.h"
 
+static void encode(uint8_t *buf, uint8_t num);
+
 /*
  * Fetches the instruction from the given address.
  *
@@ -22,7 +24,7 @@
 int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
 {
     if (addr >= size || addr + 1 >= size) {
-        PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", addr);
+        PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", addr)
         return 1;
     }
 
@@ -78,7 +80,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO:
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unkown instruction\n");
+            PRINT_ERROR("fill_instr_bits", "Unkown instruction\n")
             return 1;
         }
         break;
@@ -143,7 +145,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             ctrl->alu_op = 6;
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
+            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n")
             return CHIP8_ERROR;
         }
         break;
@@ -179,7 +181,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO: other bits ???
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n");
+            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n")
             return CHIP8_ERROR;
         }
         break;
@@ -220,14 +222,12 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO
             break;
         default:
-            // fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction");
+            PRINT_ERROR("fill_instr_bits", "Unknown instruction")
             return CHIP8_ERROR;
         }
         break;
     default:
-        // fprintf(stderr, "Error [fill_instr_bits]: Unknown instruction\n");
-        PRINT_ERROR("fill_ctrl_bits", "Unknown instruction");
+        PRINT_ERROR("fill_ctrl_bits", "Unknown instruction")
         return CHIP8_ERROR;
     }
     return CHIP8_SUCCESS;
@@ -238,9 +238,7 @@ int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len,
 {
     // check for out of bounds error
     if (instr->vx >= regfile_len) {
-        // fprintf(stderr, "Error [get_aluin1]: reg index is [%u], but regfile has \
-        //                  len [%lu]\n", instr->vx, regfile_len);
-        PRINT_ERROR("get_aluin1", "reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len);
+        PRINT_ERROR("get_aluin1", "reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len)
         return CHIP8_ERROR;
     }
 
@@ -259,9 +257,7 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
 
     // check for out of bounds error
     if (index >= regfile_len) {
-        // fprintf(stderr, "Error [get_aluin2]: reg index is [%u], but regdile has \
-        //                  len [%lu]\n", index, regfile_len);
-        PRINT_ERROR("get_aluin2", "reg index is [%u], but regfile has len [%lu]\n", index, regfile_len);
+        PRINT_ERROR("get_aluin2", "reg index is [%u], but regfile has len [%lu]\n", index, regfile_len)
         return CHIP8_ERROR;
     }
 
@@ -304,8 +300,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
         *carryout = (alu_in1 >> 15) & 0x1;
         break;
     default:
-        // fprintf(stderr, "Error [exec_alu]: Unknown alu op\n");
-        PRINT_ERROR("exec_alu", "Unknown alu op\n");
+        PRINT_ERROR("exec_alu", "Unknown alu op\n")
         return CHIP8_ERROR;
     }
     *alu_res = ctrl->not_alu_res == 1 ? !*alu_res : *alu_res;
@@ -316,17 +311,10 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
               size_t memsize, uint16_t *i_reg, uint8_t *regfile, size_t regsize)
 {
     if (ctrl->mem_write == 1) {
-        // array out of bounds check
-        if (addr >= memsize) {
-            // fprintf(stderr, "Error [mem_phase]: Address out of mem bounds\n");
-            PRINT_ERROR("mem_phase", "Address out of mem bounds\n");
-            return CHIP8_ERROR;
-        }
-
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
             if (instr->vx >= regsize) {
-                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx);
+                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
 
@@ -338,16 +326,16 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
             }
             break;
         case 1: // VX
+             ; // make gcc happy :(
             // store vals in regs v0-vx into mem starting at I reg
             size_t addr = *i_reg;
             if (addr >= memsize) {
-                // fprintf(stderr, "Error [mem_phase]: Regfile access out of bounds\n");
-                PRINT_ERROR("mem_phase", "Mem access out of bounds\n");
+                PRINT_ERROR("mem_phase", "Mem access out of bounds\n")
                 return CHIP8_ERROR;
             }
 
             if (instr->vx >= regsize) {
-                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx);
+                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
             
@@ -357,8 +345,7 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
             }
             break;
         default:
-            // fprintf(stderr, "Error [mem_phase]: Unknown mem_src given\n");
-            PRINT_ERROR("mem_phase", "Unknown mem_src given\n");
+            PRINT_ERROR("mem_phase", "Unknown mem_src given\n")
             return CHIP8_ERROR;
         }
     }
@@ -382,6 +369,7 @@ int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
             regfile[instr->vx] = randnum;
             break;
         case 2: // Mem
+             ; // make gcc happy :(
             // write into regs V0-VX starting at addr stored in I
             size_t addr = *i_reg;
             for (int i = 0; i <= instr->vx; i++) {
