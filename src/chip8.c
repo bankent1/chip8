@@ -15,6 +15,7 @@
 #include "phases.h"
 #include "dbgutils.h"
 #include "chip8-error.h"
+#include "regmacros.h"
 
 // memsize = 4KB
 #define MEM_SIZE 4096
@@ -115,14 +116,12 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
             rc = 1;
             break;
         }
-
         res = get_aluin2(ctrl, instr, regfile, regsize, &alu_in2);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("get_aluin2")
             rc = 1;
             break;
         }
-
         uint16_t alu_res;
         uint8_t carry_out;
         res = exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl);
@@ -132,6 +131,7 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
             break;
         }
 
+        // mem phase
         res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("mem_phase")
@@ -139,6 +139,7 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
             break;
         }
 
+        // write back phase
         int randnum = rand(); // may need optimization
         res = wbphase(ctrl, instr, mem, i_reg, memsize, regfile, regsize, alu_res, randnum);
         if (res != CHIP8_SUCCESS) {
@@ -149,7 +150,13 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // TODO: write I
 
-        // TODO: carry out
+        // carry out
+        if (ctrl->vf_write == 1) {
+            regfile[VF] = carry_out;
+        }
+
+        // TODO: update screen buffer
+
         // TODO: get next pc
     }
 

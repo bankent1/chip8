@@ -88,6 +88,10 @@ struct ctrl_bits {
     uint8_t alu_op;
 
     uint8_t not_alu_res;
+
+    // 0 - no write
+    // 1 - carry out write
+    uint8_t vf_write;
 };
 
 /*

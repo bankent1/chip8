@@ -68,6 +68,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
     ctrl->xpointer = 0;
     ctrl->alu_op = 0;
     ctrl->not_alu_res = 0;
+    ctrl->vf_write = 0;
 
     switch (instr->opcode) {
     case 0x0:
@@ -121,6 +122,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
         ctrl->reg_src = 5;
         ctrl->write_reg = 1;
         ctrl->alu_src = 0;
+        ctrl->vf_write = 1;
 
         switch (instr->funct) {
         case 0x0: // AND
