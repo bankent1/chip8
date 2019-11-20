@@ -3,3 +3,5 @@ chip8
 runtests
 roms
 **/*.o
+memdump
+regdump

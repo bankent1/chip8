@@ -1,5 +1,8 @@
-TARGET = chip8
+VERSION = 0.1
+
+TARGET = chip8-v$(VERSION)
 INCLUDE = ./include
+
 
 CC = gcc
 
@@ -47,4 +50,4 @@ $(TDIR)/%.o: $(TDIR)/%.c
 .PHONY: clean
 
 clean:
-	rm -f $(COBJS) $(TOBJ) $(TARGET) $(TEST_TARGET)
+	rm -f $(COBJS) $(TOBJ) $(TARGET) $(TEST_TARGET) memdump regdump

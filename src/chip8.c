@@ -33,12 +33,26 @@ static int debug = 0;
 static int load_program(uint8_t *mem, FILE *bin_prog);
 static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, 
                         size_t regsize, uint16_t *i_reg);
+static void dump_all(uint8_t *mem, uint8_t *regfile);
 
 
 int main(int argc, char *argv[])
 {
     int rc = 0;
     printf("Hello, CHIP 8!\n");
+
+    if (debug) {
+        printf("Debug Mode On!!\n");
+    }
+
+    // TODO: not this
+    char *program_name;
+    if (argc == 1) {
+        program_name = malloc(15);
+        strcpy(program_name, "roms/jason.ch8");
+    } else {
+        program_name = argv[1];
+    }
 
     // init memory
     uint8_t mem[MEM_SIZE];
@@ -63,18 +77,14 @@ int main(int argc, char *argv[])
     rc = exec_program(mem, MEM_SIZE, reg_file, NUM_REGS, I_reg);
     if (rc != CHIP8_SUCCESS) {
         EXIT_ERROR("exec_program");
+        if (debug) {
+            dump_all(mem, reg_file);
+        }
         return 1;
     }
 
     return 0;
 }
-
-// static void zero_mem(uint8_t *mem, size_t size)
-// {
-//     for (int i = 0; i < size; i++) {
-//         mem[i] = 0;
-//     }
-// }
 
 static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, 
                  size_t regsize, uint16_t *I_reg)
@@ -107,7 +117,6 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // fetch instr
         uint16_t raw_instr;
-        // res = fetch_instr(mem, memsize, pc, &raw_instr);
         res = fetch_instr(state, &raw_instr);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("fetch_instr")
@@ -128,23 +137,18 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // exec alu
         uint16_t alu_in1, alu_in2;
-        // res = get_aluin1(instr, regfile, regsize, &alu_in1);
         res = get_aluin1(state, &alu_in1);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("get_aluin1")
             rc = 1;
             break;
         }
-        // res = get_aluin2(ctrl, instr, regfile, regsize, &alu_in2);
         res = get_aluin2(state, &alu_in2);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("get_aluin2")
             rc = 1;
             break;
         }
-        uint16_t alu_res;
-        uint8_t carry_out;
-        // res = exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl);
         res = exec_alu(alu_in1, alu_in2, state);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("exec_alu")
@@ -153,7 +157,6 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
         }
 
         // mem phase
-        // res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
         res = mem_phase(state);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("mem_phase")
@@ -175,7 +178,7 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // carry out TODO: This should happen in wbphase!
         if (ctrl->vf_write == 1) {
-            regfile[VF] = carry_out;
+            regfile[VF] = state->carry_out;
         }
 
         // TODO: update screen buffer
@@ -207,4 +210,17 @@ static int load_program(uint8_t *mem, FILE *bin_prog)
     }
 
     return 0;
+}
+
+static void dump_all(uint8_t *mem, uint8_t *regfile)
+{
+    FILE *memout = fopen("memdump", "w");
+    FILE *regout = fopen("regdump", "w");
+    if (memout == NULL || regout == NULL) {
+        PRINT_ERROR("dump_all", "Failed to open file for dumping\n");
+        exit(CHIP8_ERROR);
+    }
+
+    dump_mem(memout, mem, MEM_SIZE);
+    dump_regfile(regout, regfile, NUM_REGS);
 }

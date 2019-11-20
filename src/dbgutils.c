@@ -58,9 +58,7 @@ void dump_regfile(FILE *outfile, uint8_t *regfile, size_t size)
     fprintf(outfile, "=========================\n");
     fprintf(outfile, "      Dumping REGFILE    \n");
     for (int i = 0; i < size; i++) {
-        if ((i+1) % 8 == 0)
-            fprintf(outfile, "\n");
-        fprintf(outfile, "$%d: %u  |  ", i, regfile[i]);
+        fprintf(outfile, "$%d: %u\n", i, regfile[i]);
     }
     fprintf(outfile, "=========================\n");
 }
