@@ -5,6 +5,7 @@ CC = gcc
 
 CFLAGS = -Wall -I$(INCLUDE)
 CFLAGS += -g # debug
+CFLAGS += -DDEBUG # output debug msg
 # CFLAGS += -O3 # release optimizations
 
 SDIR = ./src

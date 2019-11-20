@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 #include "phases.h"
-#include "chip8-error.h"
+#include "chip8.h"
 
 static void encode(uint8_t *buf, uint8_t num);
 
@@ -21,14 +21,15 @@ static void encode(uint8_t *buf, uint8_t num);
  *
  * Returns 1 on bad address call.
  */
-int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
+// int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr)
+int fetch_instr(struct chip8_state *state, uint16_t *instr)
 {
-    if (addr >= size || addr + 1 >= size) {
-        PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", addr)
+    if (state->pc >= state->memsize || state->pc + 1 >= state->memsize) {
+        PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", state->pc)
         return 1;
     }
 
-    *instr = (mem[addr] << 8) | mem[addr + 1];
+    *instr = (state->mem[state->pc] << 8) | state->mem[state->pc + 1];
     return CHIP8_SUCCESS;
 }
 
@@ -75,7 +76,8 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
         // TODO
         switch (instr->kk) {
         case 0xE0: // clear screen
-            // TODO
+            // TODO (maybe)
+            ctrl->fb_write = 2;
             break;
         case 0xEE: // RET from subroutine
             // TODO:
@@ -235,9 +237,15 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
     return CHIP8_SUCCESS;
 }
 
-int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
-               uint16_t *alu_in1)
+// int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
+//                uint16_t *alu_in1)
+int get_aluin1(struct chip8_state *state, uint16_t *alu_in1)
 {
+    // unpack state
+    struct instruction *instr = state->instr;
+    uint8_t *regfile = state->regfile;
+    size_t regfile_len = state->regsize;
+
     // check for out of bounds error
     if (instr->vx >= regfile_len) {
         PRINT_ERROR("get_aluin1", "reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len)
@@ -248,14 +256,24 @@ int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len,
     return CHIP8_SUCCESS;
 }
 
-int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
-                    uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2)
+// int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
+//                     uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2)
+int get_aluin2(struct chip8_state *state, uint16_t *alu_in2)
 {
+    // unpack state
+    struct instruction *instr = state->instr;
+    struct ctrl_bits *ctrl = state->ctrl;
+    uint8_t *regfile = state->regfile;
+    size_t regfile_len = state->regsize;
+
     uint8_t index = 111; // force error if not set
-    if (ctrl->alu_src == 0)
+    if (ctrl->alu_src == 0) {
         index = instr->vy;
-    else if (ctrl->alu_src == 1)
+    } else if (ctrl->alu_src == 1) {
         index = instr->kk;
+    } else {
+        PRINT_ERROR("get_alu2", "PANIC!!\n");
+    }
 
     // check for out of bounds error
     if (index >= regfile_len) {
@@ -268,9 +286,15 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
 }
 
 // execute alu based on alu_op ctrl bit
-int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
-             uint8_t *carryout, struct ctrl_bits *ctrl)
+// int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
+//              uint8_t *carryout, struct ctrl_bits *ctrl)
+int exec_alu(uint16_t alu_in1, uint16_t alu_in2, struct chip8_state *state)
 {
+    // unpack state
+    uint16_t *alu_res = &(state->alu_res);
+    uint8_t *carryout = &(state->carry_out);
+    struct ctrl_bits *ctrl = state->ctrl;
+
     *carryout = 0;
     uint32_t res32 = 0;
     switch (ctrl->alu_op) {
@@ -309,9 +333,20 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res,
     return CHIP8_SUCCESS;
 }
 
-int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
-              size_t memsize, uint16_t *i_reg, uint8_t *regfile, size_t regsize)
+// int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
+//               size_t memsize, uint16_t *i_reg, uint8_t *regfile, size_t regsize)
+int mem_phase(struct chip8_state *state)
 {
+    // unpack state
+    struct ctrl_bits *ctrl = state->ctrl;
+    struct instruction *instr = state->instr;
+    uint8_t *mem = state->mem;
+    size_t memsize = state->memsize;
+    uint16_t *i_reg = state->I_reg;
+    uint8_t *regfile = state->regfile;
+    uint8_t regsize = state->regsize;
+
+
     if (ctrl->mem_write == 1) {
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
@@ -354,14 +389,25 @@ int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
     return CHIP8_SUCCESS;
 }
 
-int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
-            uint16_t *i_reg, size_t memsize, uint8_t *regfile, size_t regsize, 
-            uint16_t alu_res, uint8_t randnum)
+// int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
+//             uint16_t *i_reg, size_t memsize, uint8_t *regfile, size_t regsize, 
+//             uint16_t alu_res, uint8_t randnum)
+int wbphase(struct chip8_state *state, uint8_t randnum)
 {
+    // unpack state
+    struct ctrl_bits *ctrl = state->ctrl;
+    struct instruction *instr = state->instr;
+    uint8_t *mem = state->mem;
+    uint16_t *i_reg = state->I_reg;
+    size_t memsize = state->memsize;
+    uint8_t *regfile = state->regfile;
+    uint16_t alu_res = state->alu_res;
+
+
     if (ctrl->write_reg) {
         if (instr->vx) {
             fprintf(stderr, "Error [wbphase]: Regfile out of bounds");
-            return 1;
+            return CHIP8_ERROR;
         }
         switch (ctrl->reg_src) {
         case 0: // DT (delay timer)
@@ -377,7 +423,7 @@ int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
             for (int i = 0; i <= instr->vx; i++) {
                 if (addr >= memsize) {
                     fprintf(stderr, "Error [wbphase]: Mem out of bounds");
-                    return 1;
+                    return CHIP8_ERROR;
                 }
                 regfile[i] = mem[addr];
                 addr++;
@@ -398,7 +444,36 @@ int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
         }
     }
 
-    return 0;
+    return CHIP8_SUCCESS;
+}
+
+int get_nextpc(struct chip8_state *state)
+{
+    switch (state->ctrl->pc_src) {
+    case 0: // PC + 2
+        state->pc += 2;
+        break;
+    case 1: // PC
+        break;
+    case 2: // PC + 4
+        state->pc += 4;
+        break;
+    case 3: // NNN
+        state->pc = state->instr->nnn;
+        break;
+    case 4: // v0 + nnn
+        state->pc = state->instr->nnn + state->regfile[V0];
+        break;
+    case 5: // stack
+        // TODO ???
+        PRINT_ERROR("get_nextpc", "pc from stack not implemented\n");
+        return CHIP8_ERROR;
+        break;
+    default:
+        PRINT_ERROR("get_nextpc", "Unknown pc bit %d\n", state->ctrl->pc_src);
+        return CHIP8_ERROR;
+    }
+    return CHIP8_SUCCESS;
 }
 
 // *** HELPER FUNCTIONS ***

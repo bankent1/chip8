@@ -1,7 +1,8 @@
-#include <stdint.h>
-
 #ifndef PHASES_H
 #define PHASES_H
+
+#include <stdint.h>
+#include "chip8.h"
 
 // helper struct for holding the different data from the component
 struct instruction {
@@ -42,6 +43,9 @@ struct ctrl_bits {
     uint8_t mem_write;
 
     // frame buf write
+    // 0 - no write
+    // 1 - yes write
+    // 2 - clear screen
     uint8_t fb_write;
 
     // ???
@@ -99,7 +103,7 @@ struct ctrl_bits {
  *
  * Returns 1 on bad address call.
  */
-int fetch_instr(uint8_t *mem, size_t size, uint16_t addr, uint16_t *instr);
+int fetch_instr(struct chip8_state *state, uint16_t *instr);
 
 /*
  * Decodes the given instruction and fills the given instr struct.
@@ -120,16 +124,18 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl);
  * 
  * Return 1 if error occured, 0 on success.
  */
-int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
-               uint16_t *alu_in1);
+// int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
+//                uint16_t *alu_in1);
+int get_aluin1(struct chip8_state *state, uint16_t *alu_in1);
 
 /*
  * Sets the value of *alu_in2 to the alu input based on the ctrl bits and instr
  * 
  * Return 1 on error, 0 on success.
  */
-int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
-                    uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2);
+// int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
+//                     uint8_t *regfile, size_t regfile_len, uint16_t *alu_in2);
+int get_aluin2(struct chip8_state *state, uint16_t *alu_in2);
 
 /*
  * Executes the alu based on the alu op and inputs given. The result will be 
@@ -138,24 +144,34 @@ int get_aluin2(struct ctrl_bits *ctrl, struct instruction *instr,
  * 
  * Returns 1 if error occured while executing, 0 otherwise.
  */
-int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
-             uint8_t *carryout, struct ctrl_bits *ctrl);
+// int exec_alu(uint16_t alu_in1, uint16_t alu_in2, uint16_t *alu_res, 
+//              uint8_t *carryout, struct ctrl_bits *ctrl);
+int exec_alu(uint16_t alu_in1, uint16_t alu_in2, struct chip8_state *state);
 /*
  * Executes the mem phase of the chip 8 processor.
  *
  * Returns 1 on error, 0 on success. 
  */
-int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
-              size_t memsize, uint16_t *i_reg, uint8_t *regfile, 
-              size_t regsize);
+// int mem_phase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem, 
+//               size_t memsize, uint16_t *i_reg, uint8_t *regfile, 
+//               size_t regsize);
+int mem_phase(struct chip8_state *state);
               
 /*
  * Executes the write-back phase of the chip 8 processor.
  *
  * Returns 1 on error, 0 on success.
  */
-int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
-            uint16_t *i_reg, size_t memsize, uint8_t *regfile, size_t regsize, 
-            uint16_t alu_res, uint8_t randnum);
+// int wbphase(struct ctrl_bits *ctrl, struct instruction *instr, uint8_t *mem,
+//             uint16_t *i_reg, size_t memsize, uint8_t *regfile, size_t regsize, 
+//             uint16_t alu_res, uint8_t randnum);
+int wbphase(struct chip8_state *state, uint8_t randnum);
+
+/*
+ * Gets the next pc for the processor
+ *
+ * Returns CHIP8_ERROR on error, CHIP8_SUCCESS on success
+ */
+int get_nextpc(struct chip8_state *state);
 
 #endif

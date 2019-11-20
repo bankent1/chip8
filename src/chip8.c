@@ -14,8 +14,6 @@
 #include "chip8.h"
 #include "phases.h"
 #include "dbgutils.h"
-#include "chip8-error.h"
-#include "regmacros.h"
 
 // memsize = 4KB
 #define MEM_SIZE 4096
@@ -24,6 +22,12 @@
 #define DATA_START 0x200
 #define INSTR_START 0x80
 #define FONT_SET_START 0x00
+
+#ifdef DEBUG
+static int debug = 1;
+#else
+static int debug = 0;
+#endif
 
 // prototypes
 static int load_program(uint8_t *mem, FILE *bin_prog);
@@ -73,7 +77,7 @@ int main(int argc, char *argv[])
 // }
 
 static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile, 
-                 size_t regsize, uint16_t *i_reg)
+                 size_t regsize, uint16_t *I_reg)
 {
     int rc = 0;
     int res = 0;
@@ -81,27 +85,41 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
     struct instruction *instr = malloc(sizeof(struct instruction));
     struct ctrl_bits *ctrl = malloc(sizeof(struct ctrl_bits));
 
-    uint32_t pc = INSTR_START;
-    while (pc < DATA_START) {
-        if (pc < INSTR_START) {
-            PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", pc)
+    // init chip8 state
+    struct chip8_state *state = malloc(sizeof(struct chip8_state));
+    state->ctrl = ctrl;
+    state->instr = instr;
+    state->regfile = regfile;
+    state->regsize = regsize;
+    state->mem = mem;
+    state->memsize = memsize;
+    state->I_reg = I_reg;
+    state->alu_res = 0;
+    state->carry_out = 0;
+    state->pc = INSTR_START;
+
+    while (state->pc < DATA_START) {
+        if (state->pc < INSTR_START) {
+            PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", state->pc)
             rc = 1;
             break;
         }
 
         // fetch instr
         uint16_t raw_instr;
-        if (fetch_instr(mem, memsize, pc, &raw_instr) != CHIP8_SUCCESS) {
+        // res = fetch_instr(mem, memsize, pc, &raw_instr);
+        res = fetch_instr(state, &raw_instr);
+        if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("fetch_instr")
             rc = 1;
             break;
         }
 
         // decode instr
-        decode_instr(raw_instr, instr);
+        decode_instr(raw_instr, state->instr);
 
         // fill ctrl bits
-        res = fill_ctrl_bits(instr, ctrl);
+        res = fill_ctrl_bits(state->instr, state->ctrl);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("fill_ctrl_bits")
             rc = 1;
@@ -110,13 +128,15 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // exec alu
         uint16_t alu_in1, alu_in2;
-        res = get_aluin1(instr, regfile, regsize, &alu_in1);
+        // res = get_aluin1(instr, regfile, regsize, &alu_in1);
+        res = get_aluin1(state, &alu_in1);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("get_aluin1")
             rc = 1;
             break;
         }
-        res = get_aluin2(ctrl, instr, regfile, regsize, &alu_in2);
+        // res = get_aluin2(ctrl, instr, regfile, regsize, &alu_in2);
+        res = get_aluin2(state, &alu_in2);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("get_aluin2")
             rc = 1;
@@ -124,7 +144,8 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
         }
         uint16_t alu_res;
         uint8_t carry_out;
-        res = exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl);
+        // res = exec_alu(alu_in1, alu_in2, &alu_res, &carry_out, ctrl);
+        res = exec_alu(alu_in1, alu_in2, state);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("exec_alu")
             rc = 1;
@@ -132,7 +153,8 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
         }
 
         // mem phase
-        res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
+        // res = mem_phase(ctrl, instr, mem, memsize, i_reg, regfile, regsize);
+        res = mem_phase(state);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("mem_phase")
             rc = 1;
@@ -140,8 +162,9 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
         }
 
         // write back phase
-        int randnum = rand(); // may need optimization
-        res = wbphase(ctrl, instr, mem, i_reg, memsize, regfile, regsize, alu_res, randnum);
+        uint8_t randnum = (uint8_t) rand(); // may need optimization (allowed to be negative??)
+        // res = wbphase(ctrl, instr, mem, i_reg, memsize, regfile, regsize, alu_res, randnum);
+        res = wbphase(state, randnum);
         if (res != CHIP8_SUCCESS) {
             EXIT_ERROR("wb_phase")
             rc = 1;
@@ -150,19 +173,26 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
         // TODO: write I
 
-        // carry out
+        // carry out TODO: This should happen in wbphase!
         if (ctrl->vf_write == 1) {
             regfile[VF] = carry_out;
         }
 
         // TODO: update screen buffer
 
-        // TODO: get next pc
+        // get next pc
+        res = get_nextpc(state);
+        if (res != CHIP8_SUCCESS) {
+            EXIT_ERROR("get_nextpc");
+            rc = 1;
+            break;
+        }
     }
 
     // clean up and return
-    free(instr);
-    free(ctrl);
+    free(state->instr);
+    free(state->ctrl);
+    free(state);
     return rc;
 }
 
