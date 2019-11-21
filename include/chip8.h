@@ -29,8 +29,8 @@
 #define VF 0xF
 
 // ERROR MACROS
-#define PRINT_ERROR(function, reason, ...) \
-    fprintf((stderr), "Error [%s]: ", (function)); \
+#define PRINT_ERROR(reason, ...) \
+    fprintf((stderr), "Error [%s:%d]: ", __FUNCTION__, __LINE__); \
     fprintf((stderr), (reason), ##__VA_ARGS__);
 
 #define EXIT_ERROR(function) fprintf(stderr, "[%s] failed, exiting...\n", (function));

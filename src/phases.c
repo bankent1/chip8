@@ -24,7 +24,7 @@ static void encode(uint8_t *buf, uint8_t num);
 int fetch_instr(struct chip8_state *state, uint16_t *instr)
 {
     if (state->pc >= state->memsize || state->pc + 1 >= state->memsize) {
-        PRINT_ERROR("fetch_instr", "addr [0x%x] too large\n", state->pc)
+        PRINT_ERROR("addr [0x%x] too large\n", state->pc)
         return 1;
     }
 
@@ -82,7 +82,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO:
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unkown instruction\n")
+            PRINT_ERROR("Unkown instruction\n")
             return 1;
         }
         break;
@@ -148,7 +148,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             ctrl->alu_op = 6;
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n")
+            PRINT_ERROR("Unknown instruction\n")
             return CHIP8_ERROR;
         }
         break;
@@ -184,7 +184,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO: other bits ???
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction\n")
+            PRINT_ERROR("Unknown instruction\n")
             return CHIP8_ERROR;
         }
         break;
@@ -225,12 +225,12 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             // TODO
             break;
         default:
-            PRINT_ERROR("fill_instr_bits", "Unknown instruction")
+            PRINT_ERROR("Unknown instruction")
             return CHIP8_ERROR;
         }
         break;
     default:
-        PRINT_ERROR("fill_ctrl_bits", "Unknown instruction")
+        PRINT_ERROR("Unknown instruction")
         return CHIP8_ERROR;
     }
     return CHIP8_SUCCESS;
@@ -247,7 +247,7 @@ int get_aluin1(struct chip8_state *state, uint16_t *alu_in1)
 
     // check for out of bounds error
     if (instr->vx >= regfile_len) {
-        PRINT_ERROR("get_aluin1", "reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len)
+        PRINT_ERROR("reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len)
         return CHIP8_ERROR;
     }
 
@@ -269,12 +269,12 @@ int get_aluin2(struct chip8_state *state, uint16_t *alu_in2)
     } else if (ctrl->alu_src == 1) {
         index = instr->kk;
     } else {
-        PRINT_ERROR("get_alu2", "PANIC!!\n");
+        PRINT_ERROR("PANIC!!\n");
     }
 
     // check for out of bounds error
     if (index >= regfile_len) {
-        PRINT_ERROR("get_aluin2", "reg index is [%u], but regfile has len [%lu]\n", index, regfile_len)
+        PRINT_ERROR("reg index is [%u], but regfile has len [%lu]\n", index, regfile_len)
         return CHIP8_ERROR;
     }
 
@@ -320,7 +320,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, struct chip8_state *state)
         *carryout = (alu_in1 >> 15) & 0x1;
         break;
     default:
-        PRINT_ERROR("exec_alu", "Unknown alu op\n")
+        PRINT_ERROR("Unknown alu op\n")
         return CHIP8_ERROR;
     }
     *alu_res = ctrl->not_alu_res == 1 ? !*alu_res : *alu_res;
@@ -343,7 +343,7 @@ int mem_phase(struct chip8_state *state)
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
             if (instr->vx >= regsize) {
-                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx)
+                PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
 
@@ -359,12 +359,12 @@ int mem_phase(struct chip8_state *state)
             // store vals in regs v0-vx into mem starting at I reg
             size_t addr = *i_reg;
             if (addr >= memsize) {
-                PRINT_ERROR("mem_phase", "Mem access out of bounds\n")
+                PRINT_ERROR("Mem access out of bounds\n")
                 return CHIP8_ERROR;
             }
 
             if (instr->vx >= regsize) {
-                PRINT_ERROR("mem_phase", "VX value %d not valid!\n", instr->vx)
+                PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
             
@@ -374,7 +374,7 @@ int mem_phase(struct chip8_state *state)
             }
             break;
         default:
-            PRINT_ERROR("mem_phase", "Unknown mem_src given\n")
+            PRINT_ERROR("Unknown mem_src given\n")
             return CHIP8_ERROR;
         }
     }
@@ -396,7 +396,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
 
     if (ctrl->write_reg) {
         if (instr->vx >= regsize) {
-            fprintf(stderr, "Error [wbphase]: Regfile out of bounds on reg %d\n", instr->vx);
+            PRINT_ERROR("Regfile out of bounds on reg %d\n", instr->vx);
             return CHIP8_ERROR;
         }
         switch (ctrl->reg_src) {
@@ -412,7 +412,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
             uint16_t addr = *i_reg;
             for (int i = 0; i <= instr->vx; i++) {
                 if (addr >= memsize) {
-                    fprintf(stderr, "Error [wbphase]: Mem 0x%04x out of bounds", addr);
+                    PRINT_ERROR("Mem 0x%04x out of bounds\n", addr);
                     return CHIP8_ERROR;
                 }
                 regfile[i] = mem[addr];
@@ -429,7 +429,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
             regfile[instr->vx] = (uint16_t) alu_res;
             break;
         default:
-            fprintf(stderr, "Error [wbphase]: Unknown reg src");
+            PRINT_ERROR("Unknown reg src\n");
             return 1;
         }
     }
@@ -456,11 +456,11 @@ int get_nextpc(struct chip8_state *state)
         break;
     case 5: // stack
         // TODO ???
-        PRINT_ERROR("get_nextpc", "pc from stack not implemented\n");
+        PRINT_ERROR("pc from stack not implemented\n");
         return CHIP8_ERROR;
         break;
     default:
-        PRINT_ERROR("get_nextpc", "Unknown pc bit %d\n", state->ctrl->pc_src);
+        PRINT_ERROR("Unknown pc bit %d\n", state->ctrl->pc_src);
         return CHIP8_ERROR;
     }
     return CHIP8_SUCCESS;

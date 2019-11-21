@@ -110,7 +110,7 @@ static int exec_program(uint8_t *mem, size_t memsize, uint8_t *regfile,
 
     while (state->pc < DATA_START) {
         if (state->pc < INSTR_START) {
-            PRINT_ERROR("exec_program", "Invalid PC value: 0x%04x", state->pc)
+            PRINT_ERROR("Invalid PC value: 0x%04x", state->pc);
             rc = 1;
             break;
         }
@@ -204,7 +204,7 @@ static int load_program(uint8_t *mem, FILE *bin_prog)
     uint8_t *memptr = mem + INSTR_START;
     if (fread(memptr, 1, (DATA_START - INSTR_START), bin_prog) == 0) {
         if (ferror(bin_prog) != 0) {
-            PRINT_ERROR("load_program", "Error on fread")
+            PRINT_ERROR("Error on fread");
             return 1;
         }
     }
@@ -217,7 +217,7 @@ static void dump_all(uint8_t *mem, uint8_t *regfile)
     FILE *memout = fopen("memdump", "w");
     FILE *regout = fopen("regdump", "w");
     if (memout == NULL || regout == NULL) {
-        PRINT_ERROR("dump_all", "Failed to open file for dumping\n");
+        PRINT_ERROR("Failed to open file for dumping\n");
         exit(CHIP8_ERROR);
     }
 
