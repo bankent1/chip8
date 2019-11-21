@@ -7,6 +7,7 @@ INCLUDE = ./include
 CC = gcc
 
 CFLAGS = -Wall -I$(INCLUDE)
+CFLAGS += --std=gnu99
 CFLAGS += -g # debug
 CFLAGS += -DDEBUG # output debug msg
 # CFLAGS += -O3 # release optimizations
