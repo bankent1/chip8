@@ -5,13 +5,10 @@ NOTE: This is currently in a very early state and is not ready for use.
 
 
 ## Build
-```./build.sh```
+```make```
 
 ## Run
-```./run.sh```
+```./chip8v<VERSION NUMBER>```
 
 ## Clean
-```./clean.sh```
-
-## Run Tests
-```./test.sh```
+```make clean```
