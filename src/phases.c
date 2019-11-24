@@ -23,7 +23,7 @@ static void encode(uint8_t *buf, uint8_t num);
  */
 int fetch_instr(struct chip8_state *state, uint16_t *instr)
 {
-    if (state->pc >= state->memsize || state->pc + 1 >= state->memsize) {
+    if (state->pc >= CHIP8_MEM_SIZE || state->pc + 1 >= CHIP8_MEM_SIZE) {
         PRINT_ERROR("addr [0x%x] too large\n", state->pc)
         return 1;
     }
@@ -243,11 +243,10 @@ int get_aluin1(struct chip8_state *state, uint16_t *alu_in1)
     // unpack state
     struct instruction *instr = state->instr;
     uint8_t *regfile = state->regfile;
-    size_t regfile_len = state->regsize;
 
     // check for out of bounds error
-    if (instr->vx >= regfile_len) {
-        PRINT_ERROR("reg index is [%u], but regfile has len [%lu]\n", instr->vx, regfile_len)
+    if (instr->vx >= CHIP8_NUM_REGS) {
+        PRINT_ERROR("reg index is [%u], but regfile has len [%u]\n", instr->vx, CHIP8_NUM_REGS)
         return CHIP8_ERROR;
     }
 
@@ -261,7 +260,6 @@ int get_aluin2(struct chip8_state *state, uint16_t *alu_in2)
     struct instruction *instr = state->instr;
     struct ctrl_bits *ctrl = state->ctrl;
     uint8_t *regfile = state->regfile;
-    size_t regfile_len = state->regsize;
 
     uint8_t index = 111; // force error if not set
     if (ctrl->alu_src == 0) {
@@ -273,8 +271,8 @@ int get_aluin2(struct chip8_state *state, uint16_t *alu_in2)
     }
 
     // check for out of bounds error
-    if (index >= regfile_len) {
-        PRINT_ERROR("reg index is [%u], but regfile has len [%lu]\n", index, regfile_len)
+    if (index >= CHIP8_NUM_REGS) {
+        PRINT_ERROR("reg index is [%u], but regfile has len [%u]\n", index, CHIP8_NUM_REGS)
         return CHIP8_ERROR;
     }
 
@@ -333,16 +331,14 @@ int mem_phase(struct chip8_state *state)
     struct ctrl_bits *ctrl = state->ctrl;
     struct instruction *instr = state->instr;
     uint8_t *mem = state->mem;
-    size_t memsize = state->memsize;
     uint16_t *i_reg = state->I_reg;
     uint8_t *regfile = state->regfile;
-    uint8_t regsize = state->regsize;
 
 
     if (ctrl->mem_write == 1) {
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
-            if (instr->vx >= regsize) {
+            if (instr->vx >= CHIP8_NUM_REGS) {
                 PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
@@ -358,12 +354,12 @@ int mem_phase(struct chip8_state *state)
              ; // make gcc happy :(
             // store vals in regs v0-vx into mem starting at I reg
             size_t addr = *i_reg;
-            if (addr >= memsize) {
+            if (addr >= CHIP8_MEM_SIZE) {
                 PRINT_ERROR("Mem access out of bounds\n")
                 return CHIP8_ERROR;
             }
 
-            if (instr->vx >= regsize) {
+            if (instr->vx >= CHIP8_NUM_REGS) {
                 PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
@@ -388,14 +384,12 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
     struct instruction *instr = state->instr;
     uint8_t *mem = state->mem;
     uint16_t *i_reg = state->I_reg;
-    size_t memsize = state->memsize;
-    size_t regsize = state->regsize;
     uint8_t *regfile = state->regfile;
     uint16_t alu_res = state->alu_res;
 
 
     if (ctrl->write_reg) {
-        if (instr->vx >= regsize) {
+        if (instr->vx >= CHIP8_NUM_REGS) {
             PRINT_ERROR("Regfile out of bounds on reg %d\n", instr->vx);
             return CHIP8_ERROR;
         }
@@ -411,7 +405,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
             // write into regs V0-VX starting at addr stored in I
             uint16_t addr = *i_reg;
             for (int i = 0; i <= instr->vx; i++) {
-                if (addr >= memsize) {
+                if (addr >= CHIP8_MEM_SIZE) {
                     PRINT_ERROR("Mem 0x%04x out of bounds\n", addr);
                     return CHIP8_ERROR;
                 }

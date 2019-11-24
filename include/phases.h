@@ -102,12 +102,10 @@ struct chip8_state {
     struct ctrl_bits *ctrl;
     struct instruction *instr;
     uint8_t *mem;
-    size_t memsize;
 
     uint16_t *I_reg;
 
     uint8_t *regfile;
-    size_t regsize;
     
     uint16_t alu_res;
     uint8_t carry_out;

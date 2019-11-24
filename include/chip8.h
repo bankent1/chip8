@@ -10,6 +10,15 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+// sizes
+#define CHIP8_MEM_SIZE 4096
+#define CHIP8_NUM_REGS 16
+
+// memory layout
+#define CHIP8_DATA_START 0x200
+#define CHIP8_INSTR_START 0x80
+#define CHIP8_FONT_START 0x00
+
 // REG MACROS
 #define V0 0x0
 #define V1 0x1
