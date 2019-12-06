@@ -48,5 +48,10 @@
 #define CHIP8_SUCCESS 0
 #define CHIP8_ERROR 1
 
+// Debug printing
+void dgb_printf(const char *fmt, ...);
+#define LOG(msg, ...) dbg_printf("%s: ", __FUNCTION__); \
+    dbg_printf(msg, ##__VA_ARGS__);
+
 
 #endif

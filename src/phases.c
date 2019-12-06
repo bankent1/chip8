@@ -428,6 +428,11 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
         }
     }
 
+    // carry out write
+    if (ctrl->vf_write == 1) {
+        regfile[VF] = state->carry_out;
+    }
+
     return CHIP8_SUCCESS;
 }
 

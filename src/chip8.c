@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "chip8.h"
 #include "phases.h"
@@ -20,6 +21,17 @@ static int debug = 1;
 #else
 static int debug = 0;
 #endif
+
+void dbg_printf(const char *fmt, ...)
+{
+    if (!debug)
+        return;
+
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+}
 
 // prototypes
 static int load_program(uint8_t *mem, FILE *bin_prog);
@@ -32,9 +44,8 @@ int main(int argc, char *argv[])
     int rc = 0;
     printf("Hello, CHIP 8!\n");
 
-    if (debug) {
-        printf("Debug Mode On!!\n");
-    }
+    dbg_printf("Debug turned on\n");
+    LOG("Testing log macro %d\n", 42);
 
     // TODO: not this
     char *program_name;
@@ -162,11 +173,6 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
         }
 
         // TODO: write I
-
-        // carry out TODO: This should happen in wbphase!
-        if (ctrl->vf_write == 1) {
-            regfile[VF] = state->carry_out;
-        }
 
         // TODO: update screen buffer
 
