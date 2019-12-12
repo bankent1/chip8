@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     printf("Hello, CHIP 8!\n");
 
     dbg_printf("Debug turned on\n");
-    LOG("Testing log macro %d\n", 42);
 
     // TODO: not this
     char *program_name;
@@ -64,18 +63,21 @@ int main(int argc, char *argv[])
     uint8_t reg_file[CHIP8_NUM_REGS];
     uint16_t *I_reg = 0;
 
+    LOG("Opening %s\n", program_name);
     FILE *program = fopen(program_name, "r");
     if (program == NULL) {
         perror("fopen");
         return CHIP8_ERROR;
     }
 
+    LOG("Loading program %s into memory.\n", program_name);
     rc = load_program(mem, program);
     if (rc != CHIP8_SUCCESS) {
         EXIT_ERROR("load_program");
         return CHIP8_ERROR;
     }
 
+    LOG("Starting %s...\n", program_name);
     rc = exec_program(mem, reg_file, I_reg);
     if (rc != CHIP8_SUCCESS) {
         EXIT_ERROR("exec_program");
@@ -108,6 +110,9 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
     state->pc = CHIP8_INSTR_START;
 
     while (state->pc < CHIP8_DATA_START) {
+        dbg_printf("------------------------------------------\n");
+        LOG("Current pc -> 0x%04x\n", state->pc);
+        dbg_printf("------------------------------------------\n");
         if (state->pc < CHIP8_INSTR_START) {
             PRINT_ERROR("Invalid PC value: 0x%04x", state->pc);
             rc = CHIP8_ERROR;
@@ -183,6 +188,7 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
             rc = CHIP8_ERROR;
             break;
         }
+        dbg_printf("------------------------------------------\n");
     }
 
     // clean up and return

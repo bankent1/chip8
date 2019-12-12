@@ -23,12 +23,14 @@ static void encode(uint8_t *buf, uint8_t num);
  */
 int fetch_instr(struct chip8_state *state, uint16_t *instr)
 {
+    LOG("Fetching Instruction...\n");
     if (state->pc >= CHIP8_MEM_SIZE || state->pc + 1 >= CHIP8_MEM_SIZE) {
         PRINT_ERROR("addr [0x%x] too large\n", state->pc)
         return 1;
     }
 
     *instr = (state->mem[state->pc] << 8) | state->mem[state->pc + 1];
+    LOG("Instruction -- 0x%04x\n", *instr);
     return CHIP8_SUCCESS;
 }
 
@@ -37,6 +39,7 @@ int fetch_instr(struct chip8_state *state, uint16_t *instr)
  */
 void decode_instr(uint16_t raw_instr, struct instruction *instr)
 {
+    LOG("Decoding Instruction...\n");
     instr->opcode = (raw_instr >> 12) & 0xf;
     instr->vx     = (raw_instr >>  8) & 0xf;
     instr->vy     = (raw_instr >>  4) & 0xf;
@@ -45,6 +48,12 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr)
     instr->kk     = (raw_instr >>  0) & 0xff;
 
     instr->nnn    = (raw_instr >>  0) & 0xfff;
+    LOG("opcode->0x%01x\n", instr->opcode);
+    LOG("vx->    0x%01x\n", instr->vx);
+    LOG("vy->    0x%01x\n", instr->vy);
+    LOG("funct-> 0x%01x\n", instr->funct);
+    LOG("kk->    0x%02x\n", instr->kk);
+    LOG("nnn->   0x%03x\n", instr->nnn);
 }
 
 
@@ -233,6 +242,26 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
         PRINT_ERROR("Unknown instruction")
         return CHIP8_ERROR;
     }
+    LOG("*** Control Bits ***\n");
+    LOG("vfwrite_enable -> %d\n", ctrl->vfwrite_enable);
+    LOG("reg_src        -> %d\n", ctrl->reg_src);
+    LOG("write_reg      -> %d\n", ctrl->write_reg);
+    LOG("i_src          -> %d\n", ctrl->i_src);
+    LOG("mem_src        -> %d\n", ctrl->mem_src);
+    LOG("mem_write      -> %d\n", ctrl->mem_write);
+    LOG("fb_write       -> %d\n", ctrl->fb_write);
+    LOG("fb_row         -> %d\n", ctrl->fb_row);
+    LOG("sp_src         -> %d\n", ctrl->sp_src);
+    LOG("sp_write       -> %d\n", ctrl->sp_write);
+    LOG("pc_src         -> %d\n", ctrl->pc_src);
+    LOG("delay_hold     -> %d\n", ctrl->delay_hold);
+    LOG("sound_hold     -> %d\n", ctrl->sound_hold);
+    LOG("xpointer       -> %d\n", ctrl->xpointer);
+    LOG("alu_src        -> %d\n", ctrl->alu_src);
+    LOG("alu_op         -> %d\n", ctrl->alu_op);
+    LOG("not_alu_res    -> %d\n", ctrl->not_alu_res);
+    LOG("vf_write       -> %d\n", ctrl->vf_write);
+    LOG("********************\n");
     return CHIP8_SUCCESS;
 }
 
@@ -251,6 +280,7 @@ int get_aluin1(struct chip8_state *state, uint16_t *alu_in1)
     }
 
     *alu_in1 = regfile[instr->vx];
+    LOG("Alu input 1 is %d\n", *alu_in1);
     return CHIP8_SUCCESS;
 }
 
@@ -277,6 +307,7 @@ int get_aluin2(struct chip8_state *state, uint16_t *alu_in2)
     }
 
     *alu_in2 = regfile[index];
+    LOG("Alu input 2 is %d\n", *alu_in2);
     return CHIP8_SUCCESS;
 }
 
@@ -291,29 +322,36 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, struct chip8_state *state)
     uint32_t res32 = 0;
     switch (ctrl->alu_op) {
     case 0: // AND
+        LOG("Performing an AND op on %d and %d\n", alu_in1, alu_in2);
         *alu_res = alu_in1 & alu_in2;
         break;
     case 1: // OR
+        LOG("Performing an OR op on %d and %d\n", alu_in1, alu_in2);
         *alu_res = alu_in1 | alu_in2;
         break;
     case 2: // ADD
+        LOG("Performing an ADD op on %d and %d\n", alu_in1, alu_in2);
         res32 = (uint32_t)(alu_in1 + alu_in2);
         *carryout = (res32 >> 16) & 0x1;
         *alu_res = (uint16_t)res32;
         break;
     case 3: // SUB
+        LOG("Performing an SUB op on %d and %d\n", alu_in1, alu_in2);
         res32 = (uint32_t)(alu_in1 + ~alu_in2 + 1);
         *carryout = (res32 >> 16) & 0x1;
         *alu_res = (uint16_t)res32;
         break;
     case 4: // XOR
+        LOG("Performing an XOR op on %d and %d\n", alu_in1, alu_in2);
         *alu_res = alu_in1 ^ alu_in2;
         break;
     case 5: // shift right
+        LOG("Performing an SHIFT R op on %d\n", alu_in1);
         *alu_res = alu_in1 >> 1;
         *carryout = alu_in1 & 0x1;
         break;
     case 6: // shift left
+        LOG("Performing an SHIFT L op on %d\n", alu_in1);
         *alu_res = alu_in1 << 1;
         *carryout = (alu_in1 >> 15) & 0x1;
         break;
@@ -327,6 +365,7 @@ int exec_alu(uint16_t alu_in1, uint16_t alu_in2, struct chip8_state *state)
 
 int mem_phase(struct chip8_state *state)
 {
+    LOG("Entering mem phase\n");
     // unpack state
     struct ctrl_bits *ctrl = state->ctrl;
     struct instruction *instr = state->instr;
@@ -336,12 +375,14 @@ int mem_phase(struct chip8_state *state)
 
 
     if (ctrl->mem_write == 1) {
+        LOG("Mem write is on!\n");
         switch(ctrl->mem_src) {
         case 0: // Binary Coded Value
             if (instr->vx >= CHIP8_NUM_REGS) {
                 PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
+            LOG("Store binary coded value for %d into 0x%04x\n", regfile[instr->vx], *i_reg);
 
             // convert VX value to text and store encoding at mem[I_reg]
             uint8_t encoded_num[5];
@@ -363,6 +404,7 @@ int mem_phase(struct chip8_state *state)
                 PRINT_ERROR("VX value %d not valid!\n", instr->vx)
                 return CHIP8_ERROR;
             }
+            LOG("Dumping regs until V%X into mem 0x%04x\n", instr->vx, addr);
             
             for (int i = 0; i <= instr->vx; i++) {
                 mem[addr] = regfile[i]; 
@@ -379,6 +421,7 @@ int mem_phase(struct chip8_state *state)
 
 int wbphase(struct chip8_state *state, uint8_t randnum)
 {
+    LOG("Entering WB phase\n");
     // unpack state
     struct ctrl_bits *ctrl = state->ctrl;
     struct instruction *instr = state->instr;
@@ -389,6 +432,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
 
 
     if (ctrl->write_reg) {
+        LOG("Write reg is turned on!\n");
         if (instr->vx >= CHIP8_NUM_REGS) {
             PRINT_ERROR("Regfile out of bounds on reg %d\n", instr->vx);
             return CHIP8_ERROR;
@@ -396,14 +440,17 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
         switch (ctrl->reg_src) {
         case 0: // DT (delay timer)
             // TODO
+            LOG("Delay timer -- not implemented yet :(");
             break;
         case 1: // Rand
+            LOG("Writing rand number to V%X\n", instr->vx);
             regfile[instr->vx] = randnum;
             break;
         case 2: // Mem
              ; // make gcc happy :(
             // write into regs V0-VX starting at addr stored in I
             uint16_t addr = *i_reg;
+            LOG("Writing into V0-V%X from addr 0x%04x\n", instr->vx, addr);
             for (int i = 0; i <= instr->vx; i++) {
                 if (addr >= CHIP8_MEM_SIZE) {
                     PRINT_ERROR("Mem 0x%04x out of bounds\n", addr);
@@ -414,12 +461,15 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
             }
             break;
         case 3: // kk
+            LOG("Writing kk = %d into V%X\n", instr->kk, instr->vx);
             regfile[instr->vx] = instr->kk;
             break;
         case 4: // key press
             // TODO
+            LOG("Writing key press value -- NOT IMPLEMENTED!\n");
             break;
         case 5: // alu_res
+            LOG("Writing alu res %d into V%X\n", alu_res, instr->vx);
             regfile[instr->vx] = (uint16_t) alu_res;
             break;
         default:
@@ -430,6 +480,7 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
 
     // carry out write
     if (ctrl->vf_write == 1) {
+        LOG("Carry out is on! Writing %d into VF\n", state->carry_out);
         regfile[VF] = state->carry_out;
     }
 
@@ -438,22 +489,29 @@ int wbphase(struct chip8_state *state, uint8_t randnum)
 
 int get_nextpc(struct chip8_state *state)
 {
+    LOG("Getting next PC\n");
     switch (state->ctrl->pc_src) {
     case 0: // PC + 2
+        LOG("PC = PC + 2\n");
         state->pc += 2;
         break;
     case 1: // PC
+        LOG("PC = PC\n");
         break;
     case 2: // PC + 4
+        LOG("PC = PC + 4\n");
         state->pc += 4;
         break;
     case 3: // NNN
+        LOG("PC = NNN = 0x%04x\n", state->instr->nnn);
         state->pc = state->instr->nnn;
         break;
     case 4: // v0 + nnn
         state->pc = state->instr->nnn + state->regfile[V0];
+        LOG("PC = V0 + NNN = \n", state->pc);
         break;
     case 5: // stack
+        LOG("PC = STACK -- NOT IMPLEMENTED\n");
         // TODO ???
         PRINT_ERROR("pc from stack not implemented\n");
         return CHIP8_ERROR;
