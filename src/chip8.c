@@ -87,6 +87,8 @@ int main(int argc, char *argv[])
         return CHIP8_ERROR;
     }
 
+    printf("Chip8 exiting, Goodbye!\n");
+
     return CHIP8_SUCCESS;
 }
 
@@ -113,9 +115,13 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
         dbg_printf("------------------------------------------\n");
         LOG("Current pc -> 0x%04x\n", state->pc);
         dbg_printf("------------------------------------------\n");
-        if (state->pc < CHIP8_INSTR_START) {
+        if (state->pc < CHIP8_INSTR_START || state->pc > CHIP8_DATA_START) {
             PRINT_ERROR("Invalid PC value: 0x%04x", state->pc);
             rc = CHIP8_ERROR;
+            break;
+        } else if (state->pc == CHIP8_DATA_START) {
+            LOG("End of instr region, program finished!\n");
+            rc = CHIP8_SUCCESS;
             break;
         }
 
@@ -126,6 +132,12 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
             EXIT_ERROR("fetch_instr")
             rc = CHIP8_ERROR;
             break;
+        }
+        if (raw_instr == 0x0) {
+            // TODO: Exit or skip?
+            LOG("NOP read, reading next instr...\n");
+            state->pc += 2;
+            continue;
         }
 
         // decode instr
