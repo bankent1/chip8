@@ -9,11 +9,13 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-// TODO: NOT correct size
-#define GRAPH_ROWS 100
-#define GRAPH_COLS 100
+// 64x32 display
+#define GRAPH_ROWS 64
+#define GRAPH_COLS 32
 
 int graphics_init();
 int graphics_shutdown();
+int drawfb();
+
 
 #endif
