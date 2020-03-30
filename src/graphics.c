@@ -20,14 +20,13 @@
 // 	- clear row
 
 
-static uint8_t **frame_buf;
 static int initialized = 0;
 static char PIXEL_ON = '*';
 
 /*
  * Initializes the graphics framework for chip8
  */
-int graphics_init(uint8_t **fb)
+int graphics_init()
 {
 	LOG("Initializing graphics with size %d x %d\n", GRAPH_ROWS, GRAPH_COLS);
 	int result = CHIP8_SUCCESS;
@@ -37,13 +36,10 @@ int graphics_init(uint8_t **fb)
 		return CHIP8_ERROR;
 	}
 
-	// TODO: Idk about this??
-	frame_buf = fb;
-
 	// init ncurses
 	initscr();
-	noecho();
-	cbreak();
+//	noecho();
+//	cbreak();
 
 
 	initialized = 1;
@@ -73,14 +69,14 @@ int graphics_shutdown()
 /*
  *
  */
-int drawfb()
+int drawfb(uint8_t *(frame_buf[GRAPH_ROWS][GRAPH_COLS]))
 {
 	LOG("Refreshing screen\n");
 
 	for (int row = 0; row < GRAPH_ROWS; row++) {
 		for (int col = 0; col < GRAPH_COLS; col++) {
 			// iterate over byte
-			uint8_t byte = frame_buf[row][col];
+			uint8_t byte = *(frame_buf[row][col]);
 			for (int i = 1; i < 8; i++) {
 				// draw to screen on 1 bits
 				if ((byte & 0x1) == 1) {

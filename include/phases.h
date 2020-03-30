@@ -35,6 +35,7 @@ struct ctrl_bits {
     // 0 - I
     // 1 - I + ALU/NNN
     // 2 - I + 1
+    // 3 - VX
     uint8_t i_src;
 
     // 0 - Binary Coded Value

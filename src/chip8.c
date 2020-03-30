@@ -15,6 +15,7 @@
 #include "chip8.h"
 #include "phases.h"
 #include "dbgutils.h"
+#include "graphics.h"
 
 #ifdef DEBUG
 static int debug = 1;
@@ -59,6 +60,15 @@ int main(int argc, char *argv[])
     uint8_t mem[CHIP8_MEM_SIZE];
     memset((void *) mem, 0, CHIP8_MEM_SIZE);
 
+    // TODO idk about dis
+    // init framebuffer
+    // uint8_t fb[GRAPH_ROWS][GRAPH_COLS];
+    // rc = graphics_init();
+    // if (rc != CHIP8_SUCCESS) {
+    //     EXIT_ERROR("graphics_init");
+    //     return CHIP8_ERROR;
+    // }
+
     // init reg_file and spec regs
     uint8_t reg_file[CHIP8_NUM_REGS];
     uint16_t *I_reg = 0;
@@ -86,6 +96,12 @@ int main(int argc, char *argv[])
         }
         return CHIP8_ERROR;
     }
+
+    // rc = graphics_shutdown();
+    // if (rc != CHIP8_SUCCESS) {
+    //     EXIT_ERROR("graphics_shutdown");
+    //     return CHIP8_ERROR;
+    // }
 
     printf("Chip8 exiting, Goodbye!\n");
 
@@ -192,6 +208,7 @@ static int exec_program(uint8_t *mem, uint8_t *regfile, uint16_t *I_reg)
         // TODO: write I
 
         // TODO: update screen buffer
+        // res = graphics_drawfb(fb);
 
         // get next pc
         res = get_nextpc(state);

@@ -15,7 +15,7 @@
 
 int graphics_init();
 int graphics_shutdown();
-int drawfb();
+int drawfb(uint8_t *(frame_buf[GRAPH_ROWS][GRAPH_COLS]));
 
 
 #endif

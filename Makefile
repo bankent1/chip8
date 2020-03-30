@@ -31,7 +31,7 @@ makedebug:
 	@echo $(COBJS)
 
 $(TARGET): $(COBJS)
-	$(CC) $(CFLAGS) $(COBJS) -o $(TARGET)
+	$(CC) -lncurses $(CFLAGS) $(COBJS) -o $(TARGET)
 
 $(SDIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -51,4 +51,4 @@ $(TDIR)/%.o: $(TDIR)/%.c
 .PHONY: clean
 
 clean:
-	rm -f $(COBJS) $(TOBJ) $(TARGET) $(TEST_TARGET) memdump regdump
+	rm -f $(COBJS) $(TOBJ) $(TARGET) $(TEST_TARGET) memdump regdump *.log

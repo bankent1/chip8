@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "phases.h"
 #include "chip8.h"
@@ -61,23 +62,7 @@ void decode_instr(uint16_t raw_instr, struct instruction *instr)
 int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
 {
     // zero out struct
-    ctrl->vfwrite_enable = 0;
-    ctrl->reg_src = 0;
-    ctrl->write_reg = 0;
-    ctrl->i_src = 0;
-    ctrl->mem_src = 0;
-    ctrl->fb_write = 0;
-    ctrl->mem_write = 0;
-    ctrl->sp_src = 0;
-    ctrl->sp_write = 0;
-    ctrl->pc_src = 0;
-    ctrl->alu_src = 0;
-    ctrl->delay_hold = 0;
-    ctrl->sound_hold = 0;
-    ctrl->xpointer = 0;
-    ctrl->alu_op = 0;
-    ctrl->not_alu_res = 0;
-    ctrl->vf_write = 0;
+    bzero(ctrl, sizeof(struct ctrl_bits));
 
     switch (instr->opcode) {
     case 0x0:
@@ -222,6 +207,7 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
                    // in VX. Characters 0-F (in hexadecimal) are represented 
                    // by a 4x5 font.
             // TODO
+            ctrl->i_src = 3;
             break;
         case 0x33: // store decimal rep vx, storing most-sigfig at I, mid-sigfig
                    // at I + 1, least-sigfig at I + 2
@@ -229,9 +215,13 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
             break;
         case 0x55: // store v0 to vx in mem starting at addr I
             // TODO
+            ctrl->mem_src = 1;
+            ctrl->mem_write = 1;
             break;
         case 0x65: // fill v0 to vx from mem starting at addr I
             // TODO
+            ctrl->reg_src = 2;
+            ctrl->write_reg = 1;
             break;
         default:
             PRINT_ERROR("Unknown instruction")
@@ -265,8 +255,6 @@ int fill_ctrl_bits(struct instruction *instr, struct ctrl_bits *ctrl)
     return CHIP8_SUCCESS;
 }
 
-// int get_aluin1(struct instruction *instr, uint8_t *regfile, size_t regfile_len, 
-//                uint16_t *alu_in1)
 int get_aluin1(struct chip8_state *state, uint16_t *alu_in1)
 {
     // unpack state
@@ -417,6 +405,24 @@ int mem_phase(struct chip8_state *state)
         }
     }
     return CHIP8_SUCCESS;
+}
+
+int write_i(struct chip8_state *state)
+{
+    switch (state->ctrl->i_src) {
+    case 0: // I
+        break;
+    case 1: // I + ALU/NNN
+        break;
+    case 2: // I + 1
+        break;
+    case 3: // VX
+        LOG("Loading addr of digit %d rep of VX val for graphics into I reg\n", state->instr->vx);
+        break;
+    default:
+        PRINT_ERROR("Unknown i_src given %d\n", state->ctrl->i_src);
+        return CHIP8_ERROR;
+    }
 }
 
 int wbphase(struct chip8_state *state, uint8_t randnum)

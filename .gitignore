@@ -5,3 +5,4 @@ roms
 **/*.o
 memdump
 regdump
+*.log
