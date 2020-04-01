@@ -1,8 +1,6 @@
 *vscode*
-chip8*
-runtests
 roms
 **/*.o
-memdump
-regdump
 *.log
+chip8
+*dump*
