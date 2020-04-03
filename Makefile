@@ -32,4 +32,4 @@ $(SDIR)/%.o: $(SDIR)/%.cpp $(HDRS) Makefile
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(OBJ)
+	rm -f $(TARGET) $(OBJ) *coredump*

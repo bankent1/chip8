@@ -45,13 +45,13 @@ Mem::Mem()
     Mem::write_font();
 }
 
-void Mem::write(uint8_t data, uint16_t addr)
+inline void Mem::write(uint8_t data, uint16_t addr)
 {
     if (addr_in_range(addr))
         mem[addr] = data;
 }
 
-uint8_t Mem::read(uint16_t addr)
+inline uint8_t Mem::read(uint16_t addr)
 {
     if (addr_in_range(addr))
         return mem[addr];
