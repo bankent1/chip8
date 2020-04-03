@@ -30,6 +30,15 @@ $(SDIR)/%.o: $(SDIR)/%.cpp $(HDRS) Makefile
 	@echo "$@, $<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
+.PHONY: tests
+tests: build
+	@make -C test
+
+.PHONY: run-tests
+run-tests: tests
+	./test/chip8-tests
+
 .PHONY: clean
 clean:
 	rm -f $(TARGET) $(OBJ) *coredump*
+	@make -C test clean
