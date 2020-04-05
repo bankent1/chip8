@@ -73,11 +73,9 @@ static void log_instr(Instr i)
 }
 
 Chip8::Chip8(std::ifstream& program)
+    : I(0), pc(0x200), mem()
 {
-    mem = Mem();
-    // init state
-    I = 0;
-    pc = 0x200; // start of program instr
+    // set seed for rand
     std::srand(std::time(nullptr));
 
     // load ops into array
@@ -434,7 +432,7 @@ void Chip8::dump()
     ofile << "pc: " << (uint) pc << std::endl;
     // dump regs
     for (int i = 0; i < 16; i++) {
-        ofile << "V" << i << ": " << (unsigned int) V[i] << std::endl;
+        ofile << "V" << i << ": " << (uint) V[i] << std::endl;
     }
 
     ofile.close();
