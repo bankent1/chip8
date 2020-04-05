@@ -40,5 +40,5 @@ run-tests: tests
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(OBJ) *coredump*
+	rm -f $(TARGET) $(OBJ) *dump* *.log
 	@make -C test clean

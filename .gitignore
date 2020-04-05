@@ -1,6 +1,6 @@
 *vscode*
-roms
-**/*.o
-*.log
 chip8
 *dump*
+**/*.o
+roms
+*.log

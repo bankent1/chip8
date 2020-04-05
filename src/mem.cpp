@@ -45,16 +45,17 @@ Mem::Mem()
     Mem::write_font();
 }
 
-inline void Mem::write(uint8_t data, uint16_t addr)
+void Mem::write(uint8_t data, uint16_t addr)
 {
     if (addr_in_range(addr))
         mem[addr] = data;
 }
 
-inline uint8_t Mem::read(uint16_t addr)
+uint8_t Mem::read(uint16_t addr)
 {
-    if (addr_in_range(addr))
+    if (addr <= 0xFFF)
         return mem[addr];
+    std::cerr << "Warning: Attempt to access outside of addr range!\n";
     return 0x00;
 }
 
@@ -72,6 +73,11 @@ void Mem::dump()
     }
 
     ofile.close();
+}
+
+uint32_t Mem::size()
+{
+    return (1024*4);
 }
 
 void Mem::write_font()
