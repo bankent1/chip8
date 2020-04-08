@@ -12,9 +12,12 @@ IDIR = include
 CFLAGS = -std=c++14
 CFLAGS += -I$(IDIR)
 CFLAGS += -Wall -Wextra
+CFLAGS += $(shell sdl2-config --cflags)
 # CFLAGS += -O3
 CFLAGS += -g
 CFLAGS += -DDEBUG
+
+LIBS = $(shell sdl2-config --libs)
 
 SRC = $(wildcard $(SDIR)/*.cpp)
 OBJ = ${SRC:.cpp=.o}
@@ -24,11 +27,11 @@ HDRS = $(wildcard $(IDIR)/*.h)
 build: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(TARGET)
 
 $(SDIR)/%.o: $(SDIR)/%.cpp $(HDRS) Makefile
 	@echo "$@, $<"
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< $(LIBS) -o $@
 
 .PHONY: tests
 tests: build

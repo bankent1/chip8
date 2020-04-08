@@ -11,6 +11,7 @@
 #include <fstream>
 #include <mem.h>
 #include <chip8.h>
+#include <periphs.h>
 #include <clogs.h>
 
 int log_limit;
@@ -33,8 +34,11 @@ int main(int argc, char **argv)
 	
     std::cout << "Hello, Chip8!\n";
     Chip8 chip8 = Chip8(program);
-    chip8.run();
-    chip8.dump();
+
+    Periphs peri = Periphs("This is a test Chip8!");
+
+    // chip8.run();
+    // chip8.dump();
 
     program.close();
 }

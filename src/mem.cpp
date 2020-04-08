@@ -30,7 +30,7 @@ Memory Layout
 
 #include <fstream>
 #include <iostream>
-
+#include <cstdlib>
 #include <mem.h>
 
 // Helpers
@@ -47,15 +47,20 @@ Mem::Mem()
 
 void Mem::write(uint8_t data, uint16_t addr)
 {
-    if (addr_in_range(addr))
+    if (addr_in_range(addr)) {
         mem[addr] = data;
+    } else {
+        std::cerr << "Error: Attempt to write outside of addr range!\n";
+        std::exit(1);
+    }
 }
 
 uint8_t Mem::read(uint16_t addr)
 {
     if (addr <= 0xFFF)
         return mem[addr];
-    std::cerr << "Warning: Attempt to access outside of addr range!\n";
+    std::cerr << "Error: Attempt to access outside of addr range!\n";
+    std::exit(1);
     return 0x00;
 }
 
