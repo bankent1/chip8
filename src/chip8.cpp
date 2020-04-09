@@ -50,11 +50,11 @@ FX65 -- Fill V0 to VX (inclusive) in mem starting at addr I.
 */
 
 #include <fstream>
-#include <clogs.h>
 #include <iostream>
 #include <chip8.h>
 #include <assert.h>
 #include <cstdlib>
+#include <cstdio>
 #include <ctime>
 
 #define INSTR_LOG 0
@@ -62,18 +62,18 @@ FX65 -- Fill V0 to VX (inclusive) in mem starting at addr I.
 
 static void log_instr(Instr i)
 {
-    logf(INSTR_LOG, "----------------------------------------\n");
-    logf(INSTR_LOG, "Current Instruction: 0x%04X\n", i.raw);
-    logf(INSTR_LOG, "op  -> 0x%01X\n", i.op);
-    logf(INSTR_LOG, "nnn -> 0x%03X\n", i.nnn);
-    logf(INSTR_LOG, "nn  -> 0x%02X\n", i.nn);
-    logf(INSTR_LOG, "vx  -> 0x%01X\n", i.vx);
-    logf(INSTR_LOG, "vy  -> 0x%01X\n", i.vy);
-    logf(INSTR_LOG, "----------------------------------------\n");
+    std::fprintf(stderr, "----------------------------------------\n");
+    std::fprintf(stderr, "Current Instruction: 0x%04X\n", i.raw);
+    std::fprintf(stderr, "op  -> 0x%01X\n", i.op);
+    std::fprintf(stderr, "nnn -> 0x%03X\n", i.nnn);
+    std::fprintf(stderr, "nn  -> 0x%02X\n", i.nn);
+    std::fprintf(stderr, "vx  -> 0x%01X\n", i.vx);
+    std::fprintf(stderr, "vy  -> 0x%01X\n", i.vy);
+    std::fprintf(stderr, "----------------------------------------\n");
 }
 
 Chip8::Chip8(std::ifstream& program)
-    : I(0), pc(0x200), mem()
+    : I(0), pc(0x200), mem(), periphs("Chip8", 16)
 {
     // set seed for rand
     std::srand(std::time(nullptr));
@@ -122,8 +122,8 @@ void Chip8::run()
 
 void Chip8::step()
 {
-    logf(INSTR_LOG, "========================================\n");
-    logf(INSTR_LOG, "Current PC: 0x%04X\n", pc);
+    std::fprintf(stderr, "========================================\n");
+    std::fprintf(stderr, "Current PC: 0x%04X\n", pc);
     assert(pc < mem.size() && pc >= 0x200);
 
     // read instruction
@@ -138,6 +138,7 @@ void Chip8::step()
     instr.op  = (raw_instr >> 12) & 0xF;
     instr.nnn = (raw_instr >>  0) & 0xFFF;
     instr.nn  = (raw_instr >>  0) & 0xFF;
+    instr.n   = (raw_instr >>  0) & 0xF;
     instr.vx  = (raw_instr >>  8) & 0xF;
     instr.vy  = (raw_instr >>  4) & 0xF;
     log_instr(instr);
@@ -146,11 +147,13 @@ void Chip8::step()
     assert(opfuncs[instr.op] != NULL);
     // call op function
     (this->*opfuncs[instr.op])(instr);
+    // periphs.place_pixel(0,0,1);
+    periphs.refresh();
 }
 
 void Chip8::nop()
 {
-    logf(INSTR_LOG, "NOP Instruction!\n");
+    std::fprintf(stderr, "NOP Instruction!\n");
     pc += 2;
 }
 
@@ -178,7 +181,7 @@ void Chip8::op0(Instr instr)
 
 void Chip8::op1(Instr instr)
 {
-    logf(OP_LOG, "Jumping to 0x%04x\n", instr.nnn);
+    std::fprintf(stderr, "Jumping to 0x%04x\n", instr.nnn);
     // 1NNN -- jmp to adr NNN
     pc = instr.nnn;
 }
@@ -323,11 +326,23 @@ void Chip8::opC(Instr instr)
 
 void Chip8::opD(Instr instr)
 {
-    (void) instr;
     // DXYN -- Draw sprite at coordinate 
-    // (VX,VY) with width 8 pixels and height N pixels
-    // TODO
-    std::cerr << "Warning: Instruction DXYN not implemented :(\n";
+    // (VX,VY) with width 8 pixels and height N pixels, with
+    // sprite loaded at adrr I
+    // set VF to 1 if any pixels unset, 00 otherwise
+    uint y = V[instr.vy];
+    for (int i = 0; i < instr.n; i++) {
+        uint8_t row = mem.read(I+i);
+        int x = V[instr.vx];
+        for (int pix = 0; pix < 8; pix++) {
+            uint8_t pixval = (row >> (7-pix)) & 0x1;
+            // std::cerr << "Pixval: " << (int) pixval << std::endl;
+            periphs.place_pixel(x, y, pixval);
+            x++;
+        }
+        y++;
+    }
+
     pc += 2;
 }
 

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <mem.h>
+#include <periphs.h>
 
 #define NUM_INSTR 35
 #define NUM_OPS 16
@@ -12,6 +13,7 @@ typedef struct Instr {
     uint8_t op;
     uint16_t nnn;
     uint8_t nn;
+    uint8_t n;
     uint8_t vx;
     uint8_t vy;
 } Instr;
@@ -24,6 +26,7 @@ private:
     uint16_t pc;
     uint8_t V[16] = {0};
     Mem mem;
+    Periphs periphs;
     OpFunction opfuncs[NUM_OPS] = {0}; // use first byte to index into arr
 
     void load_program(std::ifstream& program);

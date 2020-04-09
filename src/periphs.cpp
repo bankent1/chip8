@@ -12,17 +12,17 @@
 #include <iostream>
 #include <periphs.h>
 
-#define SCALED(x) (16*x)
-
 #define FRAME_HEIGHT 32
 #define FRAME_WIDTH 64
-#define WINDOW_HEIGHT SCALED(FRAME_HEIGHT)
-#define WINDOW_WIDTH SCALED(FRAME_WIDTH)
 
-
-Periphs::Periphs(const char *title)
+Periphs::Periphs(const char *title, uint pxscale)
+    : m_pxscale(pxscale), m_framebuf(FRAME_HEIGHT*FRAME_WIDTH)
 {
     int rc;
+
+    std::fill(m_framebuf.begin(), m_framebuf.end(), 0);
+
+
     // init sdl
     rc = SDL_Init(SDL_INIT_VIDEO);
     if (rc < 0) {
@@ -30,24 +30,95 @@ Periphs::Periphs(const char *title)
         std::exit(1);
     }
 
+    uint wh = scale(FRAME_HEIGHT);
+    uint ww = scale(FRAME_WIDTH);
     // create window
     m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+                                ww, wh, SDL_WINDOW_SHOWN);
     if (m_window == NULL) {
         std::cerr << "Error: SDL_CreateWindow: " << SDL_GetError() << std::endl;
         std::exit(1);
     }
 
-    // get surface
-    m_surface = SDL_GetWindowSurface(m_window);
+    // create renderer
+    m_renderer = SDL_CreateRenderer(m_window, -1, 0);
+    if (m_renderer == NULL) {
+        std::cerr << "Error: SDL_CreateRenderer: " << SDL_GetError() << std::endl;
+        std::exit(1);
+    }
 
-    SDL_FillRect(m_surface, NULL, SDL_MapRGB(m_surface->format, 0x00, 0x00, 0x00));
-    SDL_UpdateWindowSurface(m_window);
-    SDL_Delay(10000);
+    // test
+    // place_pixel(0,0,1);
+    // refresh();
+    // SDL_Delay(2000);
+    // place_pixel(0,1,1);
+    // refresh();
+    // SDL_Delay(2000);
+    // place_pixel(0,1,1);
+    // refresh();
+    // SDL_Delay(2000);
 }
 
 Periphs::~Periphs()
 {
     SDL_DestroyWindow(m_window);
+    SDL_DestroyRenderer(m_renderer);
     SDL_Quit();
+}
+
+void Periphs::clear_screen()
+{
+    // call clear screen
+    SDL_RenderClear(m_renderer);
+
+    // fill screen black
+    SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+    SDL_Rect rectangle;
+    rectangle.x = 0;
+    rectangle.y = 0;
+    rectangle.w = scale(FRAME_WIDTH);
+    rectangle.h = scale(FRAME_HEIGHT);
+    SDL_RenderFillRect(m_renderer, &rectangle);
+    // clear buf
+    std::fill(m_framebuf.begin(), m_framebuf.end(), 0);
+    refresh();
+}
+
+void Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
+{
+    uint pos = x*FRAME_WIDTH + y;
+    uint8_t col = m_framebuf[pos] ^ pixval ? 0xFF : 0x00;
+
+    // update buffer
+    m_framebuf[pos] = col ? 1 : 0;
+
+    SDL_SetRenderDrawColor(m_renderer, col, col, col, SDL_ALPHA_OPAQUE);
+    SDL_Rect rectangle;
+
+    rectangle.x = scale(x);
+    rectangle.y = scale(y);
+    rectangle.w = scale(1);
+    rectangle.h = scale(1);
+    SDL_RenderFillRect(m_renderer, &rectangle);
+}
+
+void Periphs::refresh()
+{
+    poll();
+    SDL_RenderPresent(m_renderer);
+}
+
+void Periphs::poll()
+{
+    SDL_Event e;
+    if (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            std::exit(0);
+        }
+    }
+}
+
+uint Periphs::scale(uint x)
+{
+    return x * m_pxscale;
 }

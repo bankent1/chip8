@@ -12,9 +12,10 @@
 #include <mem.h>
 #include <chip8.h>
 #include <periphs.h>
-#include <clogs.h>
 
-int log_limit;
+#include <stdio.h>
+#include <unistd.h>
+
 int main(int argc, char **argv)
 {
 	if (argc < 2) {
@@ -22,8 +23,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// TODO set log limit from cmdargs
-	log_limit = 10;
 	char *filename = argv[1];
 	std::ifstream program;
 	program.open(filename, std::ios::binary | std::ios::in);
@@ -35,10 +34,14 @@ int main(int argc, char **argv)
     std::cout << "Hello, Chip8!\n";
     Chip8 chip8 = Chip8(program);
 
-    Periphs peri = Periphs("This is a test Chip8!");
 
     // chip8.run();
-    // chip8.dump();
+    while (1) {
+    	chip8.step();
+    	printf("Press ENTER to continue...\n");
+    	getchar();
+    }
+    chip8.dump();
 
     program.close();
 }
