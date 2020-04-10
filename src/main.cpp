@@ -12,9 +12,13 @@
 #include <mem.h>
 #include <chip8.h>
 #include <periphs.h>
+#include <csignal>
+#include <cassert>
+#include <cstdlib>
 
-#include <stdio.h>
-#include <unistd.h>
+
+static void sighandler(int sig);
+void exithandler(int rc, void *arg);
 
 int main(int argc, char **argv)
 {
@@ -22,6 +26,10 @@ int main(int argc, char **argv)
 		std::cerr << "No program specified!\n";
 		return 1;
 	}
+
+	// setup sighandler
+	sighandler_t res = signal(SIGINT, sighandler);
+	assert(res != SIG_ERR);
 
 	char *filename = argv[1];
 	std::ifstream program;
@@ -34,14 +42,32 @@ int main(int argc, char **argv)
     std::cout << "Hello, Chip8!\n";
     Chip8 chip8 = Chip8(program);
 
+    // setup exit handler
+	on_exit(exithandler, (void*)&chip8);
 
-    // chip8.run();
-    while (1) {
-    	chip8.step();
-    	printf("Press ENTER to continue...\n");
-    	getchar();
-    }
+
+    chip8.run();
+    // while (1) {
+    // 	chip8.step();
+    // 	printf("Press ENTER to continue...\n");
+    // 	getchar();
+    // }
     chip8.dump();
 
     program.close();
+}
+
+// TODO implement on_exit for dumping
+static void sighandler(int sig)
+{
+	if (sig == SIGINT)
+		std::exit(1);
+}
+
+
+void exithandler(int rc, void *arg)
+{
+	Chip8 *chip8 = (Chip8*) arg;
+	if (rc == 1)
+		chip8->dump();
 }

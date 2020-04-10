@@ -118,6 +118,8 @@ void Chip8::run()
     while (pc < mem.size()) {
         step();
     }
+    while (1)
+        periphs.poll();
 }
 
 void Chip8::step()
@@ -164,7 +166,7 @@ void Chip8::op0(Instr instr)
     switch (instr.raw) {
     case 0x00E0:
         // 00E0 -- clear the screen
-        std::cerr << "Warning: Instruction 00E0 not implemented :(\n";
+        periphs.clear_screen();
         break;
     case 0x00EE:
         // 00EE -- return from subroutine
@@ -331,17 +333,19 @@ void Chip8::opD(Instr instr)
     // sprite loaded at adrr I
     // set VF to 1 if any pixels unset, 00 otherwise
     uint y = V[instr.vy];
+    bool collision = false;
     for (int i = 0; i < instr.n; i++) {
         uint8_t row = mem.read(I+i);
         int x = V[instr.vx];
         for (int pix = 0; pix < 8; pix++) {
             uint8_t pixval = (row >> (7-pix)) & 0x1;
             // std::cerr << "Pixval: " << (int) pixval << std::endl;
-            periphs.place_pixel(x, y, pixval);
+            collision = collision || periphs.place_pixel(x, y, pixval);
             x++;
         }
         y++;
     }
+    V[0xF] = collision ? 1 : 0;
 
     pc += 2;
 }
@@ -443,8 +447,11 @@ void Chip8::dump()
         return;
     }
 
-    ofile << "I: " << (uint) I << std::endl;
-    ofile << "pc: " << (uint) pc << std::endl;
+    char str[16];
+    sprintf(str, "0x%04X", I);
+    ofile << "I: " << str << std::endl;
+    sprintf(str, "0x%04X", pc);
+    ofile << "pc: " << str << std::endl;
     // dump regs
     for (int i = 0; i < 16; i++) {
         ofile << "V" << i << ": " << (uint) V[i] << std::endl;

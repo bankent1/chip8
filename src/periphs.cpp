@@ -48,15 +48,15 @@ Periphs::Periphs(const char *title, uint pxscale)
     }
 
     // test
-    // place_pixel(0,0,1);
-    // refresh();
-    // SDL_Delay(2000);
-    // place_pixel(0,1,1);
-    // refresh();
-    // SDL_Delay(2000);
-    // place_pixel(0,1,1);
-    // refresh();
-    // SDL_Delay(2000);
+    // for (int i = 0; i < 64; i++) {
+    //     for (int j = 0; j < 32; j++) {
+    //         place_pixel(i, j, 1);
+    //         refresh();
+    //         SDL_Delay(90);
+    //     }
+    // }
+    // while (1)
+    //     poll();
 }
 
 Periphs::~Periphs()
@@ -84,9 +84,17 @@ void Periphs::clear_screen()
     refresh();
 }
 
-void Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
+bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
 {
-    uint pos = x*FRAME_WIDTH + y;
+    uint pos = x*FRAME_HEIGHT + y;
+
+    // don't draw outside of range
+    if (pos >= m_framebuf.size()) {
+        std::cerr << "Warning: Tried to draw outside of screen range!\n";
+        return false;
+    }
+
+    bool collision = m_framebuf[pos] && pixval;
     uint8_t col = m_framebuf[pos] ^ pixval ? 0xFF : 0x00;
 
     // update buffer
@@ -100,12 +108,13 @@ void Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
     rectangle.w = scale(1);
     rectangle.h = scale(1);
     SDL_RenderFillRect(m_renderer, &rectangle);
+    return collision;
 }
 
 void Periphs::refresh()
 {
-    poll();
     SDL_RenderPresent(m_renderer);
+    poll();
 }
 
 void Periphs::poll()

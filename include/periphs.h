@@ -21,7 +21,7 @@ public:
 	Periphs(const char *title, uint pxscale);
 	~Periphs();
 	void clear_screen();
-	void place_pixel(uint8_t x, uint8_t y, uint8_t pixval);
+	bool place_pixel(uint8_t x, uint8_t y, uint8_t pixval);
 	void poll();
 	void refresh();
 };
