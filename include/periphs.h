@@ -10,7 +10,6 @@
 class Periphs {
 private:
 	SDL_Window *m_window;
-	// SDL_Surface *m_surface;
 	SDL_Renderer *m_renderer;
 	uint m_pxscale;
 	std::vector<uint8_t> m_framebuf;

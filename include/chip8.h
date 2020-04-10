@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <mem.h>
 #include <periphs.h>
+#include <string>
 
 #define NUM_INSTR 35
 #define NUM_OPS 16
@@ -29,7 +30,7 @@ private:
     Periphs periphs;
     OpFunction opfuncs[NUM_OPS] = {0}; // use first byte to index into arr
 
-    void load_program(std::ifstream& program);
+    void load_program(const std::string program);
 
     // op code fn go here
     void nop();
@@ -51,7 +52,7 @@ private:
     void opF(Instr instr);
 
 public:
-    Chip8(std::ifstream& program);
+    Chip8(const std::string program);
     void step();
     void run();
     void dump();

@@ -57,9 +57,6 @@ FX65 -- Fill V0 to VX (inclusive) in mem starting at addr I.
 #include <cstdio>
 #include <ctime>
 
-#define INSTR_LOG 0
-#define OP_LOG 1
-
 static void log_instr(Instr i)
 {
     std::fprintf(stderr, "----------------------------------------\n");
@@ -72,8 +69,8 @@ static void log_instr(Instr i)
     std::fprintf(stderr, "----------------------------------------\n");
 }
 
-Chip8::Chip8(std::ifstream& program)
-    : I(0), pc(0x200), mem(), periphs("Chip8", 16)
+Chip8::Chip8(const std::string program)
+    : I(0), pc(0x200), mem(), periphs(("Chip8: " + program).c_str(), 16)
 {
     // set seed for rand
     std::srand(std::time(nullptr));
@@ -100,17 +97,22 @@ Chip8::Chip8(std::ifstream& program)
     Chip8::load_program(program);
 }
 
-void Chip8::load_program(std::ifstream& program)
+void Chip8::load_program(const std::string program)
 {
-    // TODO
+    std::ifstream progstream(program);
+    if (!progstream.is_open()) {
+        std::cerr << "Failed to open " << program << " for loading!\n";
+        std::exit(1);
+    }
     uint16_t addr = 0x200;
     uint16_t offset = 0;
-    while (!program.eof()) {
+    while (!progstream.eof()) {
         uint8_t byte;
-        program.get((char&)byte);
+        progstream.get((char&)byte);
         mem.write(byte, (addr + offset));
         offset++;
     }
+    progstream.close();
 }
 
 void Chip8::run()
@@ -400,7 +402,8 @@ void Chip8::opF(Instr instr)
     case 0x29:
         // FX29 -- Sets I to the location of the sprite for the character in VX. Characters
         //         0-F are represented by a 4x5 font
-        std::cerr << "Warning: No sprite instructions implemented!\n";
+        // std::cerr << "Warning: No sprite instructions implemented!\n";
+        I = V[instr.vx] * (8*5);
         break;
     case 0x33:
         // FX33 -- take the decimal representation of VX, place the hundreds digit in memory

@@ -32,15 +32,9 @@ int main(int argc, char **argv)
 	assert(res != SIG_ERR);
 
 	char *filename = argv[1];
-	std::ifstream program;
-	program.open(filename, std::ios::binary | std::ios::in);
-	if (!program.is_open()) {
-		std::cerr << "Failed to open file " << filename << std::endl;
-		return 1;
-	}
 	
     std::cout << "Hello, Chip8!\n";
-    Chip8 chip8 = Chip8(program);
+    Chip8 chip8 = Chip8(filename);
 
     // setup exit handler
 	on_exit(exithandler, (void*)&chip8);
@@ -52,18 +46,13 @@ int main(int argc, char **argv)
     // 	printf("Press ENTER to continue...\n");
     // 	getchar();
     // }
-    chip8.dump();
-
-    program.close();
 }
 
-// TODO implement on_exit for dumping
 static void sighandler(int sig)
 {
 	if (sig == SIGINT)
 		std::exit(1);
 }
-
 
 void exithandler(int rc, void *arg)
 {
