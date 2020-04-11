@@ -20,6 +20,32 @@ Periphs::Periphs(const char *title, uint pxscale)
 {
     int rc;
 
+    // init keymap
+    m_keymap[SDLK_0] = 0;
+    m_keymap[SDLK_1] = 1;
+    m_keymap[SDLK_2] = 2;
+    m_keymap[SDLK_3] = 3;
+    m_keymap[SDLK_4] = 4;
+    m_keymap[SDLK_5] = 5;
+    m_keymap[SDLK_6] = 6;
+    m_keymap[SDLK_7] = 7;
+    m_keymap[SDLK_8] = 8;
+    m_keymap[SDLK_9] = 9;
+    // QWERTY style mapping
+    m_keymap[SDLK_q] = 10;
+    m_keymap[SDLK_w] = 11;
+    m_keymap[SDLK_e] = 12;
+    m_keymap[SDLK_r] = 13;
+    m_keymap[SDLK_t] = 14;
+    m_keymap[SDLK_y] = 15;
+    // ABCDEF style mapping
+    // m_keymap[SDLK_a] = 10;
+    // m_keymap[SDLK_b] = 11;
+    // m_keymap[SDLK_c] = 12;
+    // m_keymap[SDLK_d] = 13;
+    // m_keymap[SDLK_e] = 14;
+    // m_keymap[SDLK_f] = 15;
+
     std::fill(m_framebuf.begin(), m_framebuf.end(), 0);
 
 
@@ -55,6 +81,8 @@ Periphs::Periphs(const char *title, uint pxscale)
     //         SDL_Delay(90);
     //     }
     // }
+    // while (1)
+    //     std::cerr << "Keypress: " << (uint)await_keypress() << std::endl; 
     // while (1)
     //     poll();
 }
@@ -125,6 +153,38 @@ void Periphs::poll()
             std::exit(0);
         }
     }
+}
+
+uint8_t Periphs::await_keypress()
+{
+    uint8_t res;
+    while (true) {
+        res = get_keystate();
+        if (res != NO_KEY)
+            return res;
+    }
+    return NO_KEY;
+}
+
+uint8_t Periphs::get_keystate()
+{
+    SDL_Event e;
+    SDL_Keycode keycode;
+    if (SDL_PollEvent(&e)) {
+        switch(e.type) {
+        case SDL_QUIT:
+            std::exit(0);
+            break;
+        case SDL_KEYDOWN:
+            keycode = e.key.keysym.sym;
+            auto it = m_keymap.find(keycode);
+            if (it != m_keymap.end()) {
+                return m_keymap[keycode];
+            }
+            break;
+        }
+    }
+    return NO_KEY;
 }
 
 uint Periphs::scale(uint x)

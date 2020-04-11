@@ -343,7 +343,6 @@ void Chip8::opD(Instr instr)
         int x = V[instr.vx];
         for (int pix = 0; pix < 8; pix++) {
             uint8_t pixval = (row >> (7-pix)) & 0x1;
-            // std::cerr << "Pixval: " << (int) pixval << std::endl;
             collision = collision || periphs.place_pixel(x, y, pixval);
             x++;
         }
@@ -356,16 +355,17 @@ void Chip8::opD(Instr instr)
 
 void Chip8::opE(Instr instr)
 {
+    uint8_t key;
     switch (instr.raw & 0xFF) {
     case 0x9E:
         // EX9E -- Skip next instr if key stored in VX is pressed
-        // TODO
-        std::cerr << "Warning: Keyboard not setup!\n";
+        key = periphs.get_keystate();
+        pc += key == V[instr.vx] ? 4 : 2;
         break;
     case 0xA1:
         // EXA1 -- Skip next instr if key stored in VX isn't pressed
-        // TODO
-        std::cerr << "Warning: Keyboard not setup!\n";
+        key = periphs.get_keystate();
+        pc += key == V[instr.vx] ? 2 : 4;
         break;
     default:
         std::cerr << "Error (opE): Unknown instruction!\n";
@@ -384,7 +384,8 @@ void Chip8::opF(Instr instr)
         break;
     case 0x0A:
         // FX0A -- Key press is awaited, then stored in VX
-        std::cerr << "Warning: No key await implemented!\n";
+        std::cerr << "Waiting for keypress...\n";
+        V[instr.vx] = periphs.await_keypress();
         break;
     case 0x15:
         // FX15 -- Sets the delay timer to VX
