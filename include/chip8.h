@@ -5,6 +5,7 @@
 #include <mem.h>
 #include <periphs.h>
 #include <string>
+#include <stack>
 
 #define NUM_INSTR 35
 #define NUM_OPS 16
@@ -26,7 +27,8 @@ private:
     uint16_t I;
     uint16_t pc;
     uint8_t V[16] = {0};
-    Mem mem;
+    std::stack<uint16_t> m_subroutines;
+    Mem m_mem;
     Periphs periphs;
     OpFunction opfuncs[NUM_OPS] = {0}; // use first byte to index into arr
 

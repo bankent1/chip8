@@ -70,7 +70,7 @@ static void log_instr(Instr i)
 }
 
 Chip8::Chip8(const std::string program)
-    : I(0), pc(0x200), mem(), periphs(("Chip8: " + program).c_str(), 16)
+    : I(0), pc(0x200), m_mem(), periphs(("Chip8: " + program).c_str(), 16)
 {
     // set seed for rand
     std::srand(std::time(nullptr));
@@ -109,7 +109,7 @@ void Chip8::load_program(const std::string program)
     while (!progstream.eof()) {
         uint8_t byte;
         progstream.get((char&)byte);
-        mem.write(byte, (addr + offset));
+        m_mem.write(byte, (addr + offset));
         offset++;
     }
     progstream.close();
@@ -117,7 +117,7 @@ void Chip8::load_program(const std::string program)
 
 void Chip8::run()
 {
-    while (pc < mem.size()) {
+    while (pc < m_mem.size()) {
         step();
     }
     while (1)
@@ -128,11 +128,11 @@ void Chip8::step()
 {
     std::fprintf(stderr, "========================================\n");
     std::fprintf(stderr, "Current PC: 0x%04X\n", pc);
-    assert(pc < mem.size() && pc >= 0x200);
+    assert(pc < m_mem.size() && pc >= 0x200);
 
     // read instruction
     // instr are 2 bytes in size (requires 2 reads)
-    uint16_t raw_instr = (((uint16_t)mem.read(pc)) << 8) | mem.read(pc+1);
+    uint16_t raw_instr = (((uint16_t)m_mem.read(pc)) << 8) | m_mem.read(pc+1);
     if (raw_instr == 0x0) {
         nop();
         return;
@@ -172,7 +172,11 @@ void Chip8::op0(Instr instr)
         break;
     case 0x00EE:
         // 00EE -- return from subroutine
-        std::cerr << "Warning: Instruction 00EE not implemented :(\n";
+        pc = m_subroutines.top();
+        m_subroutines.pop();
+        char pcfmt[8];
+        sprintf(pcfmt, "0x%04X\n", pc);
+        std::cerr << "Returning from subroutine to pc " << pcfmt << std::endl;
         break;
     default:
         // 0NNN -- Call RCA 1802 program at addr NNN. 
@@ -192,11 +196,9 @@ void Chip8::op1(Instr instr)
 
 void Chip8::op2(Instr instr)
 {
-    (void) instr;
-    // TODO
-    // 2NNN -- call subroutine at NNN 
-    std::cerr << "Warning: Instruction 2NNN not implemented :(\n";
-    pc += 2;
+    // 2NNN -- call subroutine at NNN
+    m_subroutines.push(pc);
+    pc = instr.nnn;
 }
 
 void Chip8::op3(Instr instr)
@@ -337,7 +339,7 @@ void Chip8::opD(Instr instr)
     uint y = V[instr.vy];
     bool collision = false;
     for (int i = 0; i < instr.n; i++) {
-        uint8_t row = mem.read(I+i);
+        uint8_t row = m_mem.read(I+i);
         int x = V[instr.vx];
         for (int pix = 0; pix < 8; pix++) {
             uint8_t pixval = (row >> (7-pix)) & 0x1;
@@ -413,22 +415,22 @@ void Chip8::opF(Instr instr)
             uint8_t hunds = V[instr.vx] / 100;
             uint8_t tens = (V[instr.vx] % 100) / 10;
             uint8_t ones = (V[instr.vx] % 100) % 10;
-            mem.write(hunds, I);
-            mem.write(tens, I+1);
-            mem.write(ones, I+2);
+            m_mem.write(hunds, I);
+            m_mem.write(tens, I+1);
+            m_mem.write(ones, I+2);
         }
         break;
     case 0x55:
         // FX55 -- Store V0 to VX (inclusive) in mem starting at addr I.
         for (int i = 0; i <= instr.vx; i++) {
-            mem.write(V[i], I+i);
+            m_mem.write(V[i], I+i);
         }
         I = I + instr.vx + 1;
         break;
     case 0x65:
         // FX65 -- Fill V0 to VX (inclusive) in mem starting at addr I.    
         for (int i = 0; i <= instr.vx; i++) {
-            V[i] = mem.read(I+i);
+            V[i] = m_mem.read(I+i);
         }
         I = I + instr.vx + 1;
         break;
@@ -441,7 +443,7 @@ void Chip8::opF(Instr instr)
 
 void Chip8::dump()
 {
-    mem.dump();
+    m_mem.dump();
 
     std::ofstream ofile;
     ofile.open("chip8-regdump.txt");
