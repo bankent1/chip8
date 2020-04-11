@@ -151,7 +151,6 @@ void Chip8::step()
     assert(opfuncs[instr.op] != NULL);
     // call op function
     (this->*opfuncs[instr.op])(instr);
-    // periphs.place_pixel(0,0,1);
     periphs.refresh();
 }
 
@@ -169,10 +168,11 @@ void Chip8::op0(Instr instr)
     case 0x00E0:
         // 00E0 -- clear the screen
         periphs.clear_screen();
+        pc += 2;
         break;
     case 0x00EE:
         // 00EE -- return from subroutine
-        pc = m_subroutines.top();
+        pc = m_subroutines.top() + 2;
         m_subroutines.pop();
         char pcfmt[8];
         sprintf(pcfmt, "0x%04X\n", pc);
@@ -182,9 +182,9 @@ void Chip8::op0(Instr instr)
         // 0NNN -- Call RCA 1802 program at addr NNN. 
         // Not necessary for most ROMs
         std::cerr << "Warning: Instruction 0NNN not implemented :(\n";
+        pc += 2;
         break;
     }
-    pc += 2;
 }
 
 void Chip8::op1(Instr instr)
@@ -199,6 +199,9 @@ void Chip8::op2(Instr instr)
     // 2NNN -- call subroutine at NNN
     m_subroutines.push(pc);
     pc = instr.nnn;
+    char pcfmt[8];
+    sprintf(pcfmt, "0x%04X", pc);
+    std::cerr << "Calling subroutine at " << pcfmt << std::endl;
 }
 
 void Chip8::op3(Instr instr)
@@ -336,11 +339,11 @@ void Chip8::opD(Instr instr)
     // (VX,VY) with width 8 pixels and height N pixels, with
     // sprite loaded at adrr I
     // set VF to 1 if any pixels unset, 00 otherwise
-    uint y = V[instr.vy];
+    uint8_t y = V[instr.vy];
     bool collision = false;
     for (int i = 0; i < instr.n; i++) {
         uint8_t row = m_mem.read(I+i);
-        int x = V[instr.vx];
+        uint8_t x = V[instr.vx];
         for (int pix = 0; pix < 8; pix++) {
             uint8_t pixval = (row >> (7-pix)) & 0x1;
             collision = collision || periphs.place_pixel(x, y, pixval);
@@ -371,7 +374,6 @@ void Chip8::opE(Instr instr)
         std::cerr << "Error (opE): Unknown instruction!\n";
         std::exit(1);
     }
-    pc += 2;
 }
 
 void Chip8::opF(Instr instr)
@@ -389,7 +391,7 @@ void Chip8::opF(Instr instr)
         break;
     case 0x15:
         // FX15 -- Sets the delay timer to VX
-    periphs.set_timer(V[instr.vx]);
+        periphs.set_timer(V[instr.vx]);
         break;
     case 0x18:
         // FX18 -- Sets the sound timer to VX
@@ -406,7 +408,7 @@ void Chip8::opF(Instr instr)
         // FX29 -- Sets I to the location of the sprite for the character in VX. Characters
         //         0-F are represented by a 4x5 font
         // std::cerr << "Warning: No sprite instructions implemented!\n";
-        I = V[instr.vx] * (8*5);
+        I = V[instr.vx] * 5;
         break;
     case 0x33:
         // FX33 -- take the decimal representation of VX, place the hundreds digit in memory

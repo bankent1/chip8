@@ -77,17 +77,17 @@ Periphs::Periphs(const char *title, uint pxscale)
     }
 
     // test
+    // for (int t = 0; t < 2; t++)
     // for (int i = 0; i < 64; i++) {
     //     for (int j = 0; j < 32; j++) {
     //         place_pixel(i, j, 1);
     //         refresh();
-    //         SDL_Delay(90);
     //     }
     // }
     // while (1)
     //     std::cerr << "Keypress: " << (uint)await_keypress() << std::endl; 
     // while (1)
-    //     poll();
+    //     poll_quit();
 }
 
 Periphs::~Periphs()
@@ -117,6 +117,8 @@ void Periphs::clear_screen()
 
 bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
 {
+    y = y % FRAME_HEIGHT;
+    x = x % FRAME_WIDTH;
     uint pos = x*FRAME_HEIGHT + y;
 
     // don't draw outside of range
@@ -144,10 +146,9 @@ bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
 
 void Periphs::refresh()
 {
-    SDL_RenderPresent(m_renderer);
     poll_quit();
+    SDL_RenderPresent(m_renderer);
     update_timer();
-    m_last_tick = std::chrono::high_resolution_clock::now();
 }
 
 void Periphs::poll_quit()
@@ -194,15 +195,17 @@ uint8_t Periphs::get_keystate()
 
 void Periphs::update_timer()
 {
-    while (1) {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed = now - m_last_tick;
-        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-        if (microseconds >= (long long)(1000000 / 60)) {
-            m_timer -= m_timer == 0 ? 0 : 1;
-            break;
-        }
+    auto now = std::chrono::high_resolution_clock::now();
+    auto elapsed = now - m_last_tick;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    if (microseconds >= (long long)(1000000 / 60)) {
+        m_timer -= m_timer == 0 ? 0 : 1;
+        m_last_tick = std::chrono::high_resolution_clock::now();
     }
+    // if (m_timer > 0) {
+    //     SDL_Delay(16);
+    //     m_timer--;
+    // }
 }
 
 void Periphs::set_timer(uint8_t ticks)
