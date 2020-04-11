@@ -121,7 +121,7 @@ void Chip8::run()
         step();
     }
     while (1)
-        periphs.poll();
+        periphs.refresh();
 }
 
 void Chip8::step()
@@ -380,7 +380,7 @@ void Chip8::opF(Instr instr)
     switch (instr.raw & 0xFF) {
     case 0x07:
         // FX07 -- Set VX to the value of the delay timer.
-        std::cerr << "Warning: No delay timer!\n";
+        V[instr.vx] = periphs.get_timer();
         break;
     case 0x0A:
         // FX0A -- Key press is awaited, then stored in VX
@@ -389,7 +389,7 @@ void Chip8::opF(Instr instr)
         break;
     case 0x15:
         // FX15 -- Sets the delay timer to VX
-        std::cerr << "Warning: No delay timer!\n";
+    periphs.set_timer(V[instr.vx]);
         break;
     case 0x18:
         // FX18 -- Sets the sound timer to VX

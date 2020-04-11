@@ -16,9 +16,12 @@
 #define FRAME_WIDTH 64
 
 Periphs::Periphs(const char *title, uint pxscale)
-    : m_pxscale(pxscale), m_framebuf(FRAME_HEIGHT*FRAME_WIDTH)
+    : m_pxscale(pxscale), m_framebuf(FRAME_HEIGHT*FRAME_WIDTH), m_timer(0)
 {
     int rc;
+
+    // init clock
+    m_last_tick = std::chrono::high_resolution_clock::now();
 
     // init keymap
     m_keymap[SDLK_0] = 0;
@@ -142,10 +145,12 @@ bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
 void Periphs::refresh()
 {
     SDL_RenderPresent(m_renderer);
-    poll();
+    poll_quit();
+    update_timer();
+    m_last_tick = std::chrono::high_resolution_clock::now();
 }
 
-void Periphs::poll()
+void Periphs::poll_quit()
 {
     SDL_Event e;
     if (SDL_PollEvent(&e)) {
@@ -185,6 +190,29 @@ uint8_t Periphs::get_keystate()
         }
     }
     return NO_KEY;
+}
+
+void Periphs::update_timer()
+{
+    while (1) {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto elapsed = now - m_last_tick;
+        long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+        if (microseconds >= (long long)(1000000 / 60)) {
+            m_timer -= m_timer == 0 ? 0 : 1;
+            break;
+        }
+    }
+}
+
+void Periphs::set_timer(uint8_t ticks)
+{
+    m_timer = ticks;
+}
+
+uint8_t Periphs::get_timer()
+{
+    return m_timer;
 }
 
 uint Periphs::scale(uint x)
