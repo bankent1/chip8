@@ -290,8 +290,8 @@ void Chip8::op8(Instr instr)
         V[0xF] = V[instr.vy] < V[instr.vx] ? 0 : 1;
         V[instr.vy] -= V[instr.vx];
         break;
-    case 8:
-        // 8XY8 -- VX = VX << 1 (Store most sig bit of VX in VF before shift)
+    case 0xE:
+        // 8XYE -- VX = VX << 1 (Store most sig bit of VX in VF before shift)
         // NOTE what happens if instr.vx == 0xF?
         V[0xF] = (V[instr.vx] >> 7) & 0x1;
         V[instr.vx] = V[instr.vx] << 1;
@@ -335,6 +335,9 @@ void Chip8::opC(Instr instr)
 
 void Chip8::opD(Instr instr)
 {
+    char Ifmt[8];
+    sprintf(Ifmt, "0x%04X", I);
+    std::cerr << "Loading sprite from " << Ifmt << " with height " << (uint)instr.n << std::endl;
     // DXYN -- Draw sprite at coordinate 
     // (VX,VY) with width 8 pixels and height N pixels, with
     // sprite loaded at adrr I

@@ -36,7 +36,7 @@ Memory Layout
 // Helpers
 static inline bool addr_in_range(uint16_t addr)
 {
-    return addr <= 0xFFF && addr >= 0x080;
+    return addr <= 0xFFF;
 }
 
 // class methods

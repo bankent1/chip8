@@ -82,6 +82,7 @@ Periphs::Periphs(const char *title, uint pxscale)
     //     for (int j = 0; j < 32; j++) {
     //         place_pixel(i, j, 1);
     //         refresh();
+    //         SDL_Delay(10);
     //     }
     // }
     // while (1)
@@ -149,6 +150,12 @@ void Periphs::refresh()
     poll_quit();
     SDL_RenderPresent(m_renderer);
     update_timer();
+    // some primative timing trick
+    m_clock++;
+    if (m_clock > 10) {
+        SDL_Delay(16);
+        m_clock = 0;
+    }
 }
 
 void Periphs::poll_quit()
