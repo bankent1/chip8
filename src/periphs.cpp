@@ -20,8 +20,10 @@ Periphs::Periphs(const char *title, uint pxscale)
 {
     int rc;
 
-    // init clock
+    // init clock and last key press
     m_last_tick = std::chrono::high_resolution_clock::now();
+    m_last_keytime = std::chrono::high_resolution_clock::now();
+    m_last_keycode = NO_KEY;
 
     // init keymap, map keyboard from 0x0 to 0xF
     m_keymap[SDLK_0] = 0;
@@ -157,6 +159,7 @@ void Periphs::refresh()
         SDL_Delay(16);
         m_clock = 0;
     }
+    get_keystate();
 }
 
 void Periphs::poll_quit()
@@ -180,6 +183,10 @@ uint8_t Periphs::await_keypress()
     return NO_KEY;
 }
 
+/*
+ * Get current keystate of the keys. Sticky keys are enabled to help with input 
+ * lag.
+ */
 uint8_t Periphs::get_keystate()
 {
     SDL_Event e;
@@ -193,12 +200,21 @@ uint8_t Periphs::get_keystate()
             keycode = e.key.keysym.sym;
             auto it = m_keymap.find(keycode);
             if (it != m_keymap.end()) {
-                return m_keymap[keycode];
+                m_last_keycode = m_keymap[keycode];
+                return m_last_keycode;
             }
             break;
         }
     }
-    return NO_KEY;
+    // if enough time passed, reset last keycode
+    auto now = std::chrono::high_resolution_clock::now();
+    auto elapsed = now - m_last_keytime;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+    if (milliseconds > 300) {
+        m_last_keytime = now;
+        m_last_keycode = NO_KEY;
+    }
+    return m_last_keycode;
 }
 
 void Periphs::update_timer()
@@ -210,10 +226,6 @@ void Periphs::update_timer()
         m_timer -= m_timer == 0 ? 0 : 1;
         m_last_tick = std::chrono::high_resolution_clock::now();
     }
-    // if (m_timer > 0) {
-    //     SDL_Delay(16);
-    //     m_timer--;
-    // }
 }
 
 void Periphs::set_timer(uint8_t ticks)

@@ -19,8 +19,10 @@ private:
 	std::vector<uint8_t> m_framebuf;
 	std::map<SDL_Keycode, uint8_t> m_keymap;
 	std::chrono::high_resolution_clock::time_point m_last_tick;
+	std::chrono::high_resolution_clock::time_point m_last_keytime;
+	uint8_t m_last_keycode;
 	uint8_t m_timer;
-	uint8_t m_clock = 0;
+	uint m_clock = 0;
 
 
 	uint scale(uint x);
