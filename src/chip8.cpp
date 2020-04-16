@@ -1,5 +1,10 @@
 /*
  * chip8.cpp
+ *
+ * Travis Banken
+ * 2020
+ *
+ * Implements main chip8 functionality.
  */
 
 /*

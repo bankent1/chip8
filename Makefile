@@ -13,9 +13,9 @@ CFLAGS = -std=c++14
 CFLAGS += -I$(IDIR)
 CFLAGS += -Wall -Wextra
 CFLAGS += $(shell sdl2-config --cflags)
-# CFLAGS += -O3
-CFLAGS += -g
-CFLAGS += -DDEBUG
+CFLAGS += -O3
+# CFLAGS += -g
+# CFLAGS += -DDEBUG
 
 LIBS = $(shell sdl2-config --libs)
 

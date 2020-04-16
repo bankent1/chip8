@@ -78,6 +78,6 @@ static void sighandler(int sig)
 void exithandler(int rc, void *arg)
 {
 	Chip8 *chip8 = (Chip8*) arg;
-	if (rc == 1)
+	if (rc != 0)
 		chip8->dump();
 }

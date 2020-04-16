@@ -77,20 +77,6 @@ Periphs::Periphs(const char *title, uint pxscale)
         std::cerr << "Error: SDL_CreateRenderer: " << SDL_GetError() << std::endl;
         std::exit(1);
     }
-
-    // test
-    // for (int t = 0; t < 2; t++)
-    // for (int i = 0; i < 64; i++) {
-    //     for (int j = 0; j < 32; j++) {
-    //         place_pixel(i, j, 1);
-    //         refresh();
-    //         SDL_Delay(10);
-    //     }
-    // }
-    // while (1)
-    //     std::cerr << "Keypress: " << (uint)await_keypress() << std::endl; 
-    // while (1)
-    //     poll_quit();
 }
 
 Periphs::~Periphs()
@@ -175,6 +161,7 @@ void Periphs::poll_quit()
 uint8_t Periphs::await_keypress()
 {
     uint8_t res;
+    m_last_keycode = NO_KEY;
     while (true) {
         res = get_keystate();
         if (res != NO_KEY)
