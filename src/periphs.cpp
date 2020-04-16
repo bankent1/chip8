@@ -23,7 +23,7 @@ Periphs::Periphs(const char *title, uint pxscale)
     // init clock
     m_last_tick = std::chrono::high_resolution_clock::now();
 
-    // init keymap
+    // init keymap, map keyboard from 0x0 to 0xF
     m_keymap[SDLK_0] = 0;
     m_keymap[SDLK_1] = 1;
     m_keymap[SDLK_2] = 2;
@@ -120,15 +120,16 @@ bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
 {
     y = y % FRAME_HEIGHT;
     x = x % FRAME_WIDTH;
-    uint pos = x*FRAME_HEIGHT + y;
+    uint pos = y*FRAME_WIDTH + x;
 
-    // don't draw outside of range
+    // this shouldn't happen
     if (pos >= m_framebuf.size()) {
-        std::cerr << "Warning: Tried to draw outside of screen range!\n";
-        return false;
+        std::cerr << "Error: Tried to draw outside of screen range!\n";
+        std::exit(1);
     }
 
     bool collision = m_framebuf[pos] && pixval;
+    // std::cerr << (uint) m_framebuf[pos] << " ^ " << (uint) pixval << std::endl;
     uint8_t col = m_framebuf[pos] ^ pixval ? 0xFF : 0x00;
 
     // update buffer

@@ -323,7 +323,7 @@ void Chip8::opA(Instr instr)
 void Chip8::opB(Instr instr)
 {
     // BNNN -- Jmp to addr NNN + V0
-    pc += instr.nnn + V[0];
+    pc = instr.nnn + V[0];
 }
 
 void Chip8::opC(Instr instr)
@@ -348,8 +348,10 @@ void Chip8::opD(Instr instr)
         uint8_t row = m_mem.read(I+i);
         uint8_t x = V[instr.vx];
         for (int pix = 0; pix < 8; pix++) {
+            // std::cerr << "Pix = " << pix << std::endl;
             uint8_t pixval = (row >> (7-pix)) & 0x1;
-            collision = collision || periphs.place_pixel(x, y, pixval);
+            bool bres = periphs.place_pixel(x, y, pixval);
+            collision = collision || bres;
             x++;
         }
         y++;
@@ -410,7 +412,6 @@ void Chip8::opF(Instr instr)
     case 0x29:
         // FX29 -- Sets I to the location of the sprite for the character in VX. Characters
         //         0-F are represented by a 4x5 font
-        // std::cerr << "Warning: No sprite instructions implemented!\n";
         I = V[instr.vx] * 5;
         break;
     case 0x33:
