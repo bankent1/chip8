@@ -28,3 +28,25 @@ This will generetate a `chip8` binary to execute.
 ## Usage
 Run `chip8 --help` to see all options available to you.
 To simply run a ROM you have: `chip8 <path-to-rom>`
+
+## Keymapping
+The chip8 supports a hex-based keyboard (0-F).  
+```
+Host       Chip8  
+0    ->    0  
+1    ->    1  
+2    ->    2  
+3    ->    3  
+4    ->    4  
+5    ->    5  
+6    ->    6  
+7    ->    7  
+8    ->    8  
+9    ->    9  
+q    ->    0xa  
+w    ->    0xb  
+e    ->    0xc  
+r    ->    0xd  
+t    ->    0xe  
+y    ->    0xf 
+```
