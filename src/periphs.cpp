@@ -15,8 +15,9 @@
 #define FRAME_HEIGHT 32
 #define FRAME_WIDTH 64
 
-Periphs::Periphs(const char *title, uint pxscale)
-    : m_pxscale(pxscale), m_framebuf(FRAME_HEIGHT*FRAME_WIDTH), m_timer(0)
+Periphs::Periphs(const char *title, uint pxscale, uint clock_speed, bool max_clock)
+    : m_pxscale(pxscale), m_framebuf(FRAME_HEIGHT*FRAME_WIDTH), m_timer(0), 
+    m_clock_speed(clock_speed), m_max_clock(max_clock)
 {
     int rc;
 
@@ -117,7 +118,6 @@ bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
     }
 
     bool collision = m_framebuf[pos] && pixval;
-    // std::cerr << (uint) m_framebuf[pos] << " ^ " << (uint) pixval << std::endl;
     uint8_t col = m_framebuf[pos] ^ pixval ? 0xFF : 0x00;
 
     // update buffer
@@ -140,10 +140,12 @@ void Periphs::refresh()
     SDL_RenderPresent(m_renderer);
     update_timer();
     // some primative timing trick
-    m_clock++;
-    if (m_clock > 10) {
-        SDL_Delay(16);
-        m_clock = 0;
+    if (!m_max_clock) {
+        m_clock++;
+        if (m_clock > (15 + (3*(m_clock_speed - 5)))) {
+            SDL_Delay(16);
+            m_clock = 0;
+        }
     }
     get_keystate();
 }

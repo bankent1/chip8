@@ -74,8 +74,9 @@ static void log_instr(Instr i)
     std::fprintf(stderr, "----------------------------------------\n");
 }
 
-Chip8::Chip8(const std::string program)
-    : I(0), pc(0x200), m_mem(), periphs(("Chip8: " + program).c_str(), 16)
+Chip8::Chip8(const std::string program, uint pixel_scale, uint clock_speed, bool max_clock)
+    : I(0), pc(0x200), m_mem(), periphs(("Chip8: " + program).c_str(), 
+                                        pixel_scale, clock_speed, max_clock)
 {
     // set seed for rand
     std::srand(std::time(nullptr));

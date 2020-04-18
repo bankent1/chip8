@@ -54,7 +54,7 @@ private:
     void opF(Instr instr);
 
 public:
-    Chip8(const std::string program);
+    Chip8(const std::string program, uint pixel_scale, uint clock_speed, bool max_clock);
     void step();
     void run();
     void dump();
