@@ -1,6 +1,10 @@
 # Chip8
 This is a chip8 emulator. It is designed as a hobby project first so I did not put in much effort to make this a perfect emulation by any means. However, it should run most roms properly and uses the SDL2 lib to display the virtual screen to the user.
 
+![Chip8 Picture](https://github.com/bankent1/chip8/blob/master/chip8-pic.png)
+![Chip8 Space Invaders Menu](https://github.com/bankent1/chip8/blob/master/chip8-space-invaders.png)
+![Chip8 Space Invaders](https://github.com/bankent1/chip8/blob/master/chip8-si2.png)
+
 ## Features
 This program allows you to run any chip8 rom you have on your machine. Simply provide the path to the rom when you run the command. The chip8 also allows you to adjust the speed at which it executes instructions. This is usefull as some ROMS will work better at slower or faster speeds.
   
