@@ -30,6 +30,7 @@ private:
     uint scale(uint x);
     void poll_quit();
     void update_timer();
+    void render_all();
 
 public:
     Periphs(const char *title, uint pxscale, uint clock_speed, bool max_clock);

@@ -123,21 +123,39 @@ bool Periphs::place_pixel(uint8_t x, uint8_t y, uint8_t pixval)
     // update buffer
     m_framebuf[pos] = col ? 1 : 0;
 
-    SDL_SetRenderDrawColor(m_renderer, col, col, col, SDL_ALPHA_OPAQUE);
-    SDL_Rect rectangle;
-
-    rectangle.x = scale(x);
-    rectangle.y = scale(y);
-    rectangle.w = scale(1);
-    rectangle.h = scale(1);
-    SDL_RenderFillRect(m_renderer, &rectangle);
     return collision;
+}
+
+void Periphs::render_all()
+{
+    for (size_t i = 0; i < m_framebuf.size(); i++) {
+        uint8_t x = i % FRAME_WIDTH;
+        uint8_t y = i / FRAME_WIDTH;
+        uint8_t px = m_framebuf[i];
+
+        uint8_t col = px ? 0xFF : 0x00;
+        SDL_SetRenderDrawColor(m_renderer, col, col, col, SDL_ALPHA_OPAQUE);
+        SDL_Rect rectangle;
+
+        rectangle.x = scale(x);
+        rectangle.y = scale(y);
+        rectangle.w = scale(1);
+        rectangle.h = scale(1);
+        SDL_RenderFillRect(m_renderer, &rectangle);
+    }
 }
 
 void Periphs::refresh()
 {
     poll_quit();
+    SDL_RenderClear(m_renderer);
+    render_all();
     SDL_RenderPresent(m_renderer);
+    int rc = SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+    if (rc != 0) {
+        std::cerr << "Error: Failed to set Renderer Draw Color\n";
+        exit(1);
+    }
     update_timer();
     // some primative timing trick
     if (!m_max_clock) {
